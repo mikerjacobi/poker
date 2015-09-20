@@ -1,0 +1,14 @@
+echo:
+    build: .
+    ports:
+        - "8004:80"
+    volumes:
+        - /etc/ssl:/etc/ssl
+        - /var/tmp/jacobi/gopath:/gopath
+    environment:
+        GOPATH: /gopath
+    working_dir: /gopath/src/github.com/mikerjacobi/echomongo
+    links:
+        - mongo
+mongo:
+    image: mongo
