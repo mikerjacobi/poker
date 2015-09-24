@@ -5,7 +5,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
-	"github.com/mikerjacobi/echomongo/models"
+	"github.com/mikerjacobi/poker/models"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2"
 )

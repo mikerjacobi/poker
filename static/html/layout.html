@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>echo</title>
+    <title>poker</title>
 
     <!-- Bootstrap -->
     <link href="/s/node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
@@ -20,14 +20,14 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">ECHO</a>
+          <a class="navbar-brand" href="#">poker</a>
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Home</a></li>
+            <li class="active"><a href="/">Home</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-              {{template "greet" .}}
+            {{if .LoggedIn}}<li><div id="logout_form" username="{{.Username}}"></div></li>{{end}} 
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -42,7 +42,8 @@
     <script src="/s/node_modules/react-cookie/dist/react-cookie.js"></script>
     <script src="/s/node_modules/react/dist/JSXTransformer.js"></script>
     <script type="text/jsx" src="/s/js/config.js"></script>
-    <script type="text/jsx" src="/s/js/login.js"></script>
     <script type="text/jsx" src="/s/js/logout.js"></script>
+    <script type="text/jsx" src="/s/js/loginCreate.js"></script>
+    <script type="text/jsx" src="/s/js/dashboard.js"></script>
   </body>
 </html>

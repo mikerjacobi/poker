@@ -21,7 +21,7 @@ var LoginCreateForm = React.createClass({
             },
             dataType:"json",
             success: function(data) {
-                reactCookie.save('session', data.Payload.session_id);
+                reactCookie.save('session', data.payload.session_id);
                 window.location.replace("/a/");
             }.bind(this),
                 error: function(xhr, status, err) {
@@ -98,7 +98,6 @@ var LoginCreateForm = React.createClass({
         );
     }
 });
-
 React.render(
   <LoginCreateForm baseurl={config.url}/>,
   document.getElementById('login_create_form')

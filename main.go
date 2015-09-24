@@ -8,7 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
-	"github.com/mikerjacobi/echomongo/controllers"
+	"github.com/mikerjacobi/poker/controllers"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 )
@@ -34,7 +34,7 @@ func init() {
 	flag.Parse()
 
 	//env
-	viper.BindEnv("ECHOMONGO_MONGO_1_PORT_27017_TCP_ADDR")
+	viper.BindEnv("POKER_MONGO_1_PORT_27017_TCP_ADDR")
 
 	//setup config
 	viper.AddConfigPath(configpath)
@@ -53,7 +53,7 @@ func main() {
 	e.Use(mw.Recover())
 	e.Use(controllers.CORSMiddleware())
 
-	mongoIP := viper.GetString("ECHOMONGO_MONGO_1_PORT_27017_TCP_ADDR")
+	mongoIP := viper.GetString("POKER_MONGO_1_PORT_27017_TCP_ADDR")
 	session, err := mgo.Dial(mongoIP)
 	if err != nil {
 		panic(err)
@@ -75,6 +75,15 @@ func main() {
 	a.Post("/logout", controllers.Logout)
 	a.Options("/logout", controllers.HealthCheck)
 	a.Get("/", controllers.Index)
+
+	a.Post("/game", controllers.CreateGame)
+	a.Options("/game", controllers.HealthCheck)
+	a.Get("/game/:game_id", controllers.GetGame)
+	a.Options("/game/:game_id", controllers.HealthCheck)
+	a.Get("/games", controllers.GetOpenGames)
+	a.Options("/games", controllers.HealthCheck)
+	a.Post("/game/:game_id/join", controllers.JoinGame)
+	a.Options("/game/:game_id/join", controllers.HealthCheck)
 
 	// static
 	e.Static("/s/", "static")

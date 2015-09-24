@@ -7,7 +7,7 @@ echo:
         - /var/tmp/jacobi/gopath:/gopath
     environment:
         GOPATH: /gopath
-    working_dir: /gopath/src/github.com/mikerjacobi/echomongo
+    working_dir: /gopath/src/github.com/mikerjacobi/poker
     links:
         - mongo
 mongo:

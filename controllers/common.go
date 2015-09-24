@@ -6,14 +6,13 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
-	"github.com/mikerjacobi/echomongo/models"
-	"github.com/spf13/viper"
+	"github.com/mikerjacobi/poker/models"
 	"gopkg.in/mgo.v2"
 )
 
 type Response struct {
-	Success bool `json:"success"`
-	Payload interface{}
+	Success bool        `json:"success"`
+	Payload interface{} `json:"payload"`
 }
 
 func HealthCheck(c *echo.Context) error {
@@ -22,10 +21,6 @@ func HealthCheck(c *echo.Context) error {
 }
 
 func Index(c *echo.Context) error {
-
-	authCookie, err := c.Request().Cookie("testcook")
-	logrus.Infof(">>> cooki: %+v, err: %+v", authCookie, err)
-
 	dbconn := c.Get("db").(*mgo.Database)
 	counts := dbconn.C("counts")
 
@@ -34,7 +29,7 @@ func Index(c *echo.Context) error {
 		return nil
 	}
 
-	t, err := template.ParseFiles("static/html/layout.html", "static/html/greet.html", "static/html/mainPage.html")
+	t, err := template.ParseFiles("static/html/layout.html", "static/html/dashboard.html")
 	if err != nil {
 		c.String(500, fmt.Sprintf("broken: %s", err.Error()))
 		return nil
@@ -48,7 +43,8 @@ func Index(c *echo.Context) error {
 	args := map[string]interface{}{
 		"Username": user.Username,
 		"LoggedIn": loggedIn,
-		"Logout":   fmt.Sprintf("http://username:password@%s", viper.GetString("base_uri"))}
+	}
+	logrus.Infof("args: %+v", args)
 	t.Execute(c.Response(), args)
 	return nil
 }
