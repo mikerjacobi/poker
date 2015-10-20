@@ -5,7 +5,7 @@ var LogoutForm = React.createClass({
     },
     handleClick: function(event) {
         $.ajax({
-            url: config.url + "/a/logout",
+            url: config.url + "/logout",
             method: "POST",
             dataType:"json",
             headers:{"x-session":reactCookie.load("session")},

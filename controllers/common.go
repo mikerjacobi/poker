@@ -35,10 +35,11 @@ func Index(c *echo.Context) error {
 		return nil
 	}
 
+	user := models.Account{}
 	loggedIn := false
-	user, ok := c.Get("user").(models.Account)
-	if ok {
-		loggedIn = user.Username != ""
+	loggedIn, ok := c.Get("logged_in").(bool)
+	if ok && loggedIn {
+		user = c.Get("user").(models.Account)
 	}
 	args := map[string]interface{}{
 		"Username": user.Username,

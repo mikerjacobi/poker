@@ -22,7 +22,7 @@ var LoginCreateForm = React.createClass({
             dataType:"json",
             success: function(data) {
                 reactCookie.save('session', data.payload.session_id);
-                window.location.replace("/a/");
+                window.location.replace("/");
             }.bind(this),
                 error: function(xhr, status, err) {
                 console.error(this.props, status, err.toString());

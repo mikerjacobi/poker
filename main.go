@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 
 	log "github.com/Sirupsen/logrus"
@@ -44,54 +43,42 @@ func init() {
 }
 
 func main() {
-	// Echo instance
-	e := echo.New()
-
-	// Middleware
-	e.Use(controllers.LogStateMiddleware())
-	e.Use(mw.Logger())
-	e.Use(mw.Recover())
-	e.Use(controllers.CORSMiddleware())
-
-	mongoIP := viper.GetString("POKER_MONGO_1_PORT_27017_TCP_ADDR")
-	session, err := mgo.Dial(mongoIP)
+	// database
+	session, err := mgo.Dial(viper.GetString("POKER_MONGO_1_PORT_27017_TCP_ADDR"))
 	if err != nil {
 		panic(err)
 	}
 	defer session.Close()
-	e.Use(controllers.MongoMiddleware(session))
+
+	router := echo.New()
+
+	// middleware
+	router.Use(controllers.LogStateMiddleware())
+	router.Use(mw.Logger())
+	router.Use(mw.Recover())
+	router.Use(controllers.CORSMiddleware())
+	router.Use(controllers.MongoMiddleware(session))
+	router.Use(controllers.CheckAuth())
 
 	// unauthed routes
-	e.Get("/", controllers.Index)
-	e.Post("/create_account", controllers.CreateAccount)
-	e.Get("/hello", hello)
-	e.Post("/login", controllers.Login)
-	e.Get("/favicon.ico", hello)
+	router.Get("/", controllers.Index)
+	router.Post("/create_account", controllers.CreateAccount)
+	router.Get("/hello", hello)
+	router.Post("/login", controllers.Login)
+	router.Get("/favicon.ico", hello)
+	router.Static("/s/", "static")
 
 	// auth routes
-	a := e.Group("/a")
-	a.Use(controllers.Auth())
-	a.Get("/authhello", authhello)
-	a.Post("/logout", controllers.Logout)
-	a.Options("/logout", controllers.HealthCheck)
-	a.Get("/", controllers.Index)
+	auth := router.Group("")
+	auth.Use(controllers.RequireAuth())
+	auth.Get("/authhello", authhello)
+	auth.Post("/logout", controllers.Logout)
+	auth.Post("/game", controllers.CreateGame)
+	auth.Get("/game/:game_id", controllers.GetGame)
+	auth.Get("/games", controllers.GetOpenGames)
+	auth.Post("/game/:game_id/join", controllers.JoinGame)
 
-	a.Post("/game", controllers.CreateGame)
-	a.Options("/game", controllers.HealthCheck)
-	a.Get("/game/:game_id", controllers.GetGame)
-	a.Options("/game/:game_id", controllers.HealthCheck)
-	a.Get("/games", controllers.GetOpenGames)
-	a.Options("/games", controllers.HealthCheck)
-	a.Post("/game/:game_id/join", controllers.JoinGame)
-	a.Options("/game/:game_id/join", controllers.HealthCheck)
-
-	// static
-	e.Static("/s/", "static")
-
-	// Start server
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
+	// start server
 	log.Info("starting server")
-	e.Run("0.0.0.0:80")
+	router.Run("0.0.0.0:80")
 }

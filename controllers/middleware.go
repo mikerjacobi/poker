@@ -10,13 +10,9 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func Auth() echo.HandlerFunc {
+func CheckAuth() echo.HandlerFunc {
 	return func(c *echo.Context) error {
-		// Skip WebSocket
-		if (c.Request().Header.Get(echo.Upgrade)) == echo.WebSocket || c.Request().Method == "OPTIONS" {
-			return nil
-		}
-
+		c.Set("logged_in", false)
 		sessionID := c.Request().Header.Get("x-session")
 		if sessionID == "" {
 
@@ -32,21 +28,32 @@ func Auth() echo.HandlerFunc {
 
 			if authCookie.Name == "" {
 				logrus.Errorf("failed to pull session cookie in auth middleware")
-				return echo.NewHTTPError(http.StatusUnauthorized)
+				return nil
 			}
 			sessionID = authCookie.Value
 		}
 
-		db := c.Get("db").(*mgo.Database)
-		a, err := models.CheckSession(db, sessionID)
-		if err != nil {
-			logrus.Errorf("failed to check session in auth middleware: %s.", sessionID)
-			return echo.NewHTTPError(http.StatusUnauthorized)
-		}
+		if db, ok := c.Get("db").(*mgo.Database); ok {
+			a, err := models.CheckSession(db, sessionID)
+			if err != nil {
+				logrus.Errorf("failed to check session in auth middleware: %s.", sessionID)
+				return nil
+			}
 
-		//happy path successful login
-		c.Set("user", a)
+			//happy path successful login
+			c.Set("user", a)
+			c.Set("logged_in", true)
+		}
 		return nil
+	}
+}
+func RequireAuth() echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		loggedIn, ok := c.Get("logged_in").(bool)
+		if ok && loggedIn {
+			return nil
+		}
+		return echo.NewHTTPError(http.StatusUnauthorized)
 	}
 }
 
@@ -77,6 +84,9 @@ func CORSMiddleware() echo.MiddlewareFunc {
 			c.Response().Header().Set("Access-Control-Allow-Origin", "*")
 			c.Response().Header().Set("Access-Control-Allow-Methods", "*")
 			c.Response().Header().Set("Access-Control-Allow-Headers", "x-session")
+			if c.Request().Method == "OPTIONS" {
+				return HealthCheck(c)
+			}
 			return h(c)
 		}
 	}
