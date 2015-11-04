@@ -6,11 +6,13 @@
   "dependencies": {
     "babelify": "^7.0.1",
     "bootstrap": "^3.3.5",
+    "history": "^1.13.0",
     "jquery": "^2.1.4",
     "react": "^0.14.1",
     "react-cookie": "^0.3.4",
     "react-dom": "^0.14.1",
     "react-redux": "^4.0.0",
+    "react-router": "^1.0.0-rc4",
     "reactify": "^1.1.1",
     "redux": "^3.0.4",
     "redux-devtools": "^2.1.5",
