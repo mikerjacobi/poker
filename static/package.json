@@ -4,10 +4,18 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "babelify": "^7.0.1",
     "bootstrap": "^3.3.5",
     "jquery": "^2.1.4",
+    "react": "^0.14.1",
     "react-cookie": "^0.3.4",
-    "react": "^0.13.3"
+    "react-dom": "^0.14.1",
+    "react-redux": "^4.0.0",
+    "reactify": "^1.1.1",
+    "redux": "^3.0.4",
+    "redux-devtools": "^2.1.5",
+    "redux-logger": "^2.0.4",
+    "redux-thunk": "^1.0.0"
   },
   "devDependencies": {},
   "scripts": {

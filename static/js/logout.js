@@ -1,3 +1,4 @@
+var React = require('react')
 var LogoutForm = React.createClass({
     getInitialState: function() {
         var u = document.getElementById('logout_form').getAttribute("username");
@@ -5,7 +6,7 @@ var LogoutForm = React.createClass({
     },
     handleClick: function(event) {
         $.ajax({
-            url: config.url + "/logout",
+            url: this.props.baseurl + "/logout",
             method: "POST",
             dataType:"json",
             headers:{"x-session":reactCookie.load("session")},
@@ -27,7 +28,7 @@ var LogoutForm = React.createClass({
         );
     }
 });
-React.render(
-    <LogoutForm/>,
-    document.getElementById('logout_form')
-);
+
+exports.LogoutForm = LogoutForm;
+module.exports = exports;
+

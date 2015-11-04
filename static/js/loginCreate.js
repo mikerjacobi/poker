@@ -1,3 +1,4 @@
+var React = require('react')
 var LoginCreateForm = React.createClass({
     getInitialState: function() {
         return {username: '', password: '', repeat: ''};
@@ -98,7 +99,8 @@ var LoginCreateForm = React.createClass({
         );
     }
 });
-React.render(
-  <LoginCreateForm baseurl={config.url}/>,
-  document.getElementById('login_create_form')
-);
+
+exports.LoginCreateForm = LoginCreateForm
+module.exports = exports;
+
+

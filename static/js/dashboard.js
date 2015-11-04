@@ -1,3 +1,4 @@
+var React = require('react')
 var CreateGameForm = React.createClass({
     getInitialState: function() {
         return {gamename:''};
@@ -7,7 +8,7 @@ var CreateGameForm = React.createClass({
     },
     handleClick: function(event) {
         $.ajax({
-            url: config.url + "/game",
+            url: this.props.baseurl + "/game",
             method: "POST",
             data: {'gamename':this.state.gamename },
             dataType:"json",
@@ -88,13 +89,13 @@ var GameForms = React.createClass({
     },
     joinGame: function(i){
         $.ajax({
-            url: config.url + "/game/" + this.state.games[i].game_id + "/join",
+            url: this.props.baseurl + "/game/" + this.state.games[i].game_id + "/join",
             method: "POST",
             headers:{"x-session":reactCookie.load("session")},
             dataType:"json",
             success: function(data) {
                 $.ajax({
-                    url: config.url + "/game/" + this.state.games[i].game_id,
+                    url: this.props.baseurl + "/game/" + this.state.games[i].game_id,
                     method: "GET",
                     headers:{"x-session":reactCookie.load("session")},
                     success: function(data) {
@@ -115,7 +116,7 @@ var GameForms = React.createClass({
     },
     componentDidMount: function() {
         $.ajax({
-            url: config.url + "/games",
+            url: this.props.baseurl + "/games",
             method: "GET",
             headers:{"x-session":reactCookie.load("session")},
             success: function(data) {
@@ -139,7 +140,10 @@ var GameForms = React.createClass({
 
 })
 
-React.render(
-    <GameForms />,
-    document.getElementById('game_forms')
-);
+exports.GameList = GameList;
+exports.Game = Game;
+exports.CreateGameForm = CreateGameForm;
+exports.GameForms = GameForms;
+module.exports = exports;
+
+
