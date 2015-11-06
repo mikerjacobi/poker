@@ -62,6 +62,8 @@ func main() {
 
 	// unauthed routes
 	router.Get("/", controllers.Index)
+	router.Get("/geta", controllers.GetA)
+	router.Get("/getb", controllers.GetB)
 	router.Post("/create_account", controllers.CreateAccount)
 	router.Get("/hello", hello)
 	router.Post("/login", controllers.Login)

@@ -20,6 +20,19 @@ func HealthCheck(c *echo.Context) error {
 	return nil
 }
 
+type GetData struct {
+	Data string `json:"data"`
+}
+
+func GetA(c *echo.Context) error {
+	g := GetData{"aAaAAaaAaaaAaA"}
+	return c.JSON(200, Response{true, g})
+}
+func GetB(c *echo.Context) error {
+	g := GetData{"bbBBBbBBbBbbBBbb"}
+	return c.JSON(200, Response{true, g})
+}
+
 func Index(c *echo.Context) error {
 	dbconn := c.Get("db").(*mgo.Database)
 	counts := dbconn.C("counts")

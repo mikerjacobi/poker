@@ -16,10 +16,38 @@ var count = function(state, action) {
     default:
         return state;
     }
-}
+};
+
+var asyncget = function(state, action){
+    if (state == undefined){
+        state = {
+            isFetching:false,
+            data: "ur mom"
+        };
+    }
+
+    switch (action.type){
+    case Actions.FETCH:
+        nextState = {
+            isFetching:true,
+            data: "loading..."
+        };
+        return nextState;
+    case Actions.GET:
+
+        nextState = {
+            isFetching:false,
+            data: action.data
+        };
+        return nextState;
+    default:
+        return state;
+    }
+};
 
 const rootReducer = Redux.combineReducers({
-    count
+    count,
+    asyncget
 })
 exports.rootReducer = rootReducer;
 
