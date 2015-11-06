@@ -1,8 +1,12 @@
+"use strict"
 var React = require('react')
-var LoginCreateForm = React.createClass({
-    getInitialState: function() {
-        return {username: '', password: '', repeat: ''};
-    },
+var connect =  require('react-redux').connect;
+var Actions = require("../actions")
+
+class AuthController extends React.Component {
+    constructor(props){
+        super(props)
+    }
     changeUsername: function(event) {
         this.setState({username: event.target.value});
     },
@@ -49,7 +53,7 @@ var LoginCreateForm = React.createClass({
             }.bind(this)
         });
     },
-    render: function() {
+    render() {
         var input_username = this.state.input_username;
         var input_password = this.state.input_password;
         var input_repeat = this.state.input_repeat;
@@ -96,11 +100,15 @@ var LoginCreateForm = React.createClass({
                     </button>
                 </div> 
             </fieldset>
-        );
+        )
     }
-});
+}
 
-exports.LoginCreateForm = LoginCreateForm
-module.exports = exports;
-
+var dataMapper = function(state){
+    return {
+        data: state.auth.data,
+        isFetching: state.auth.isFetching
+    };
+}
+exports.AuthManager = connect(dataMapper)(AuthManager);
 

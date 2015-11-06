@@ -1,21 +1,30 @@
 require("whatwg-fetch")
+
+//math actions
 exports.INCREMENT = 'INCREMENT'
 exports.DECREMENT = 'DECREMENT'
 exports.SQUARE = 'SQUARE'
 exports.ROOT = 'ROOT'
+
+//async get actions
 exports.GET = 'GET'
 exports.FETCH = 'FETCH'
 
+//auth actions
+exports.CHANGEUSERNAME = 'CHANGEUSERNAME'
+exports.CHANGEPASSWORD = 'CHANGEPASSWORD'
+exports.CHANGEREPEAT = 'CHANGEREPEAT'
+exports.CLICKLOGIN = 'CLICKLOGIN'
+exports.CLICKCREATEACCOUNT = 'CLICKCREATEACCOUNT'
+
 exports.increment = function(action) {
     action.type = exports.INCREMENT;
-    return action
+    return action;
 }
-
 exports.decrement = function(action) {
     action.type = exports.DECREMENT;
     return action;
 }
-
 exports.square = function(action) {
     action.type = exports.SQUARE;
     return action
@@ -24,6 +33,7 @@ exports.root = function(action) {
     action.type = exports.ROOT;
     return action
 }
+
 exports.getA = function(action) {
     action.type = exports.GET;
     action.timeout = 500;
@@ -36,6 +46,7 @@ exports.getB = function(action) {
     action.url = "http://jacobra.com:8004/getb";
     return action
 }
+
 exports.Get = function(dispatch, action){
     dispatch({type:exports.FETCH});
     fetch(action.url)
@@ -51,6 +62,28 @@ exports.Get = function(dispatch, action){
         dispatch(action);
     })
 }
+
+exports.changeUsername = function(action){
+    action.type = exports.CHANGEUSERNAME;
+    return action;
+}
+exports.changePassword = function(action){
+    action.type = exports.CHANGEPASSWORD;
+    return action;
+}
+exports.changeRepeat = function(action){
+    action.type = exports.CHANGEREPEAT;
+    return action;
+}
+exports.clickLogin = function(){
+    action = {type: exports.CLICKLOGIN};
+    return action;
+}
+exports.clickCreateAccount = function(){
+    action = {type: exports.CLICKCREATEACCOUNT};
+    return action;
+}
+
 exports.Do = function(dispatch, action){
     dispatch(action);
 }

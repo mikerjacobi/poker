@@ -29,12 +29,10 @@ var asyncget = function(state, action){
     switch (action.type){
     case Actions.FETCH:
         nextState = {
-            isFetching:true,
-            data: "loading..."
+            isFetching:true
         };
         return nextState;
     case Actions.GET:
-
         nextState = {
             isFetching:false,
             data: action.data
@@ -45,9 +43,46 @@ var asyncget = function(state, action){
     }
 };
 
+var auth = function(state, action){
+    if (state == undefined){
+        state = {
+            username:"",
+            password:"",
+            repeat:""
+        }
+    }
+    var newState = {};
+
+    switch (action.type){
+    case Actions.CHANGEUSERNAME:
+        newState.username = action.username;
+        break;
+    case Actions.CHANGEPASSWORD:
+        newState.password = action.password;
+        break;
+    case Actions.CHANGEREPEAT:
+        newState.repeat = action.repeat;
+        break;
+    case Actions.CLICKLOGIN:
+        x = 1;
+        break;
+    case Actions.CLICKCREATEACCOUNT:
+        x = 1;
+        break;
+    default:
+        console.log('default');
+        return state;
+    }
+
+    nextState = Object.assign({}, state, newState);
+    console.log('next', nextState);
+    return nextState;
+}
+
 const rootReducer = Redux.combineReducers({
     count,
-    asyncget
+    asyncget,
+    auth
 })
 exports.rootReducer = rootReducer;
 
