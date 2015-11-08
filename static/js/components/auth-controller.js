@@ -2,32 +2,42 @@
 var React = require('react')
 var connect =  require('react-redux').connect;
 var Actions = require("../actions")
+var reactCookie = require("react-cookie");
+
+exports.RequireAuth = function(nextState, replaceState){
+    var session = reactCookie.load("session") || "";
+    if (session == "" ){
+        replaceState({ nextPathname: nextState.location.pathname }, '/auth');
+    }
+}
 
 class LoginCreateForm extends React.Component{
     render(){
+        var data = <div> loading... </div>;
+        if (!this.props.isFetching){
+            data = <div>
+                    <input type="text"
+                        placeholder="username"
+                        value={this.props.username} 
+                        onChange={this.props.changeUsername}/>
+                    
+                    <br/><br/>
+                    <input type="password"
+                        placeholder="password"
+                        value={this.props.password} 
+                        onChange={this.props.changePassword}/>
+                    <button onClick={this.props.clickLogin}> Login </button>    
 
-        return (
-        <div>
-            <input type="text"
-                placeholder="username"
-                value={this.props.username} 
-                onChange={this.props.changeUsername}/>
-            
-            <br/><br/>
-            <input type="password"
-                placeholder="password"
-                value={this.props.password} 
-                onChange={this.props.changePassword}/>
-            <button onClick={this.props.clickLogin}> Login </button>    
-
-            <br/><br/>
-            <input type="password"
-                    placeholder="password repeat"
-                    value={this.props.repeat} 
-                    onChange={this.props.changeRepeat}/>
-            <button onClick={this.props.clickCreateAccount}> Create Account </button>
-        </div>
-    )}
+                    <br/><br/>
+                    <input type="password"
+                            placeholder="password repeat"
+                            value={this.props.repeat} 
+                            onChange={this.props.changeRepeat}/>
+                    <button onClick={this.props.clickCreateAccount}> Create Account </button>
+                </div>;
+        }
+        return data;
+    }
 }
 
 class AuthController extends React.Component {
@@ -58,10 +68,20 @@ class AuthController extends React.Component {
         Actions.Do(this.props.dispatch, action);
     }
     clickLogin() {
-        Actions.Do(this.props.dispatch, Actions.clickLogin());
+        Actions.Login(
+            this.props.dispatch, 
+            this.props.username, 
+            this.props.password,
+            this.props.history
+        );
     }
     clickCreateAccount() {
-        Actions.Do(this.props.dispatch, Actions.clickCreateAccount());
+        Actions.CreateAccount(
+            this.props.dispatch, 
+            this.props.username, 
+            this.props.password,
+            this.props.repeat
+        );
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
@@ -70,6 +90,7 @@ class AuthController extends React.Component {
         return(
             <div>
                 <LoginCreateForm
+                    isFetching={this.props.isFetching}
                     username={this.props.username}
                     password={this.props.password}
                     repeat={this.props.repeat}
@@ -86,6 +107,7 @@ class AuthController extends React.Component {
 
 var dataMapper = function(state){
     return {
+        isFetching: state.auth.isFetching,
         username: state.auth.username,
         password: state.auth.password,
         repeat: state.auth.repeat
@@ -93,3 +115,32 @@ var dataMapper = function(state){
 }
 exports.AuthController = connect(dataMapper)(AuthController);
 
+
+class Logout extends React.Component {
+    constructor(props){
+        super(props);
+        this.clickLogout = this.clickLogout.bind(this);
+    }
+    clickLogout() {
+        Actions.Logout(this.props.dispatch, this.props.history);
+    }
+    componentWillReceiveProps(nextProps) {
+        this.props = nextProps;
+    }
+    render() {
+        if (!this.props.loggedIn){
+            return false;
+        }
+        return(
+            <label onClick={this.clickLogout}>
+                -- <a href="#/">Logout</a>
+            </label>
+        );
+    }
+};
+var logoutMapper = function(state){
+    return {
+        loggedIn:state.logout.loggedIn
+    }; 
+};
+exports.Logout = connect(logoutMapper)(Logout);

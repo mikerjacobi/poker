@@ -1,5 +1,6 @@
 var Redux = require("redux");
-var Actions = require("./actions")
+var Actions = require("./actions");
+var reactCookie = require("react-cookie");
 
 var count = function(state, action) {
     if (state == undefined){state = 0}
@@ -43,9 +44,37 @@ var asyncget = function(state, action){
     }
 };
 
+var logout = function(state, action){
+    if (state == undefined){
+        state = {
+            loggedIn:false
+        };
+    };
+
+    var newState = {loggedIn:false};
+    switch (action.type){
+    case Actions.LOGIN:
+        newState.loggedIn = true;
+        break;
+    case Actions.LOGOUT:
+        if (action.success) {
+            reactCookie.remove('session');
+            action.history.replaceState({ nextPathname: "/"}, '/')
+        } else {
+            console.log(action.error);
+        }
+        break;
+    default:
+        return state;
+    }
+    nextState = Object.assign({}, state, newState);
+    return nextState;
+}
+
 var auth = function(state, action){
     if (state == undefined){
         state = {
+            isFetching:false,
             username:"",
             password:"",
             repeat:""
@@ -54,6 +83,9 @@ var auth = function(state, action){
     var newState = {};
 
     switch (action.type){
+    case Actions.AUTHFETCH:
+        newState = {isFetching:true};
+        break;
     case Actions.CHANGEUSERNAME:
         newState.username = action.username;
         break;
@@ -63,26 +95,34 @@ var auth = function(state, action){
     case Actions.CHANGEREPEAT:
         newState.repeat = action.repeat;
         break;
-    case Actions.CLICKLOGIN:
-        x = 1;
+    case Actions.LOGIN:
+        newState = {isFetching:false};
+        if (action.success) {
+            reactCookie.save('session', action.session_id);
+            action.history.replaceState({ nextPathname: "/auth"}, '/')
+        } else {
+            console.log(action.error);
+        }
         break;
-    case Actions.CLICKCREATEACCOUNT:
-        x = 1;
+    case Actions.CREATEACCOUNT:
+        newState = {isFetching:false};
+        if (!action.success) {
+            console.log("failed to login");
+        }
         break;
     default:
-        console.log('default');
         return state;
     }
 
     nextState = Object.assign({}, state, newState);
-    console.log('next', nextState);
     return nextState;
 }
 
 const rootReducer = Redux.combineReducers({
     count,
     asyncget,
-    auth
+    auth,
+    logout
 })
 exports.rootReducer = rootReducer;
 

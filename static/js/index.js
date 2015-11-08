@@ -4,6 +4,8 @@ var React = require("react");
 var Root = require("./components/root").Root;
 var AsyncGet = require("./components/asyncget").AsyncGet;
 var AuthController = require("./components/auth-controller").AuthController;
+var Logout = require("./components/auth-controller").Logout;
+var RequireAuth = require("./components/auth-controller").RequireAuth;
 var Dashboard = require("./components/dashboard").Dashboard;
 var render = require("react-dom").render;
 var thunkMiddleware = require("redux-thunk");
@@ -26,32 +28,30 @@ var store = createStoreWithMiddleware(rootReducer, initialState);
 class App extends React.Component {
     render() {
         return (
-            <Provider store={store}><div>
-                <h4>Flux Demo!</h4>
-                <Link to="/">Home</Link> -- 
-                <Link to="/math">Math</Link> -- 
-                <Link to="/asyncget">AsyncGet</Link> -- 
-                <Link to="/auth">Auth</Link>
+            <Provider store={store}>
+                <div>
+                    <h4>Flux Demo!</h4>
+                    <Link to="/">Home</Link> -- 
+                    <Link to="/math">Math</Link> -- 
+                    <Link to="/asyncget">AsyncGet</Link> -- 
+                    <Link to="/auth">Auth</Link>  
+                    <Logout history={this.props.history}/>
+                     
 
-                <br/><br/>
+                    <br/><br/>
 
-                {this.props.children}
-            </div></Provider>
+                    {this.props.children}
+                </div>
+            </Provider>
         )
     }
-}
-
-var enterMath = function(nextState, replaceState){
-    console.log(nextState);
-    replaceState({ nextPathname: nextState.location.pathname }, '/auth')
-    
 }
 
 render((
     <Router>
         <Route path="/" component={App}>
-        <IndexRoute component={Dashboard} />
-            <Route path="math" component={Root} onEnter={enterMath} />
+            <IndexRoute component={Dashboard} />
+            <Route path="math" component={Root} onEnter={RequireAuth} />
             <Route path="asyncget" component={AsyncGet} />
             <Route path="auth" component={AuthController} />
         </Route> 
