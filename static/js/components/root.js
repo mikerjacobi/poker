@@ -2,7 +2,7 @@
 
 var React = require("react");
 var connect =  require('react-redux').connect;
-var Actions  = require("../actions");
+var Actions  = require("../actions/actions");
 var Counter = require("./counter.js").Counter
 
 

@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
+	"io/ioutil"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
@@ -10,47 +13,58 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func validateLogin(li map[string][]string) (models.Account, error) {
-	a := models.Account{
-		Username: li["username"][0],
-		Password: li["password"][0],
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+func validateLogin(lrBody io.ReadCloser) (*LoginRequest, error) {
+	lrBytes, err := ioutil.ReadAll(lrBody)
+	if err != nil {
+		return nil, err
 	}
-	if a.Username == "" {
-		return a, errors.New("username cannot be empty")
+
+	lr := LoginRequest{}
+	err = json.Unmarshal(lrBytes, &lr)
+	if err != nil {
+		return nil, err
 	}
-	if a.Password == "" {
-		return a, errors.New("password cannot be empty")
+
+	if lr.Username == "" {
+		return nil, errors.New("username cannot be empty")
 	}
-	return a, nil
+
+	if lr.Password == "" {
+		return nil, errors.New("password cannot be empty")
+	}
+	return &lr, nil
 }
 
 func Login(c *echo.Context) error {
 	logrus.Infof("login")
 
-	c.Request().ParseForm()
-	li := c.Request().Form
-	inputAccount, err := validateLogin(li)
+	loginRequest, err := validateLogin(c.Request().Body)
 	if err != nil {
-		logrus.Errorf("failed login input validation: %s", err.Error())
+		logrus.Errorf("failed login validation: %s", err.Error())
 		c.JSON(400, Response{})
 		return nil
 	}
 
 	db := c.Get("db").(*mgo.Database)
-	a, err := models.LoadAccount(db, inputAccount.Username)
+	account, err := models.LoadAccount(db, loginRequest.Username)
 	if err != nil {
 		logrus.Errorf("failed to load account in login")
 		c.JSON(500, Response{})
-		return err
+		return nil
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(a.Hashword), []byte(inputAccount.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(account.Hashword), []byte(loginRequest.Password)); err != nil {
 		logrus.Errorf("failed to authenticate in login: %s", err.Error())
 		c.JSON(401, Response{})
 		return nil
 	}
 
-	sessionID, err := a.NewSession(db)
+	sessionID, err := account.NewSession(db)
 	if err != nil {
 		logrus.Errorf("failed to create new session in login: %s", err.Error())
 		c.JSON(500, Response{})

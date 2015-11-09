@@ -1,5 +1,5 @@
 var Redux = require("redux");
-var Actions = require("./actions");
+var Actions = require("../actions/actions");
 var reactCookie = require("react-cookie");
 
 var count = function(state, action) {
