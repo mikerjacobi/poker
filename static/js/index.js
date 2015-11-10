@@ -1,29 +1,30 @@
 "use strict"
 var Redux = require("redux");
 var React = require("react");
-var Root = require("./components/root").Root;
-var AsyncGet = require("./components/asyncget").AsyncGet;
-var AuthController = require("./components/auth-controller").AuthController;
-var Logout = require("./components/auth-controller").Logout;
-var RequireAuth = require("./components/auth-controller").RequireAuth;
-var Dashboard = require("./components/dashboard").Dashboard;
 var render = require("react-dom").render;
 var thunkMiddleware = require("redux-thunk");
 var loggerMiddleware = require("redux-logger")();
-var rootReducer = require("./reducers/reducers").rootReducer;
 var Provider = require("react-redux").Provider;
-var Router = require('react-router').Router;
-var Route = require('react-router').Route;
-var Link = require('react-router').Link;
-var IndexRoute = require('react-router').IndexRoute;
+var router = require('react-router');
+
+var Root = require("./reducers/rootReducer").Root;
+var RequireAuth = require("./common").RequireAuth;
+var GetInitialState = require("./common").GetInitialState;
+
+//smart components
+var MathController = require("./components/mathController").MathController;
+var AsyncController = require("./components/asyncController").AsyncController;
+var AuthController = require("./components/authController").AuthController;
+var IndexController = require("./components/indexController").IndexController;
+var Logout = require("./components/authController").Logout;
 
 const createStoreWithMiddleware = Redux.applyMiddleware(
     thunkMiddleware,
     loggerMiddleware
 )(Redux.createStore);
 
-var initialState = {count:7};
-var store = createStoreWithMiddleware(rootReducer, initialState);
+var initialState = GetInitialState();
+var store = createStoreWithMiddleware(Root, initialState);
 
 class App extends React.Component {
     render() {
@@ -31,15 +32,13 @@ class App extends React.Component {
             <Provider store={store}>
                 <div>
                     <h4>Flux Demo!</h4>
-                    <Link to="/">Home</Link> -- 
-                    <Link to="/math">Math</Link> -- 
-                    <Link to="/asyncget">AsyncGet</Link> -- 
-                    <Link to="/auth">Auth</Link>  
+                    <router.Link to="/">Index</router.Link> -- 
+                    <router.Link to="/math">Math</router.Link> -- 
+                    <router.Link to="/async">Async</router.Link> -- 
+                    <router.Link to="/auth">Auth</router.Link>  
                     <Logout history={this.props.history}/>
                      
-
                     <br/><br/>
-
                     {this.props.children}
                 </div>
             </Provider>
@@ -48,14 +47,14 @@ class App extends React.Component {
 }
 
 render((
-    <Router>
-        <Route path="/" component={App}>
-            <IndexRoute component={Dashboard} />
-            <Route path="math" component={Root} onEnter={RequireAuth} />
-            <Route path="asyncget" component={AsyncGet} />
-            <Route path="auth" component={AuthController} />
-        </Route> 
-    </Router>
+    <router.Router>
+        <router.Route path="/" component={App}>
+            <router.IndexRoute component={IndexController} />
+            <router.Route path="math" component={MathController} onEnter={RequireAuth} />
+            <router.Route path="async" component={AsyncController} />
+            <router.Route path="auth" component={AuthController} />
+        </router.Route> 
+    </router.Router>
     ),document.getElementById('root')
 );
 

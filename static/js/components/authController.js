@@ -1,15 +1,7 @@
 "use strict"
 var React = require('react')
 var connect =  require('react-redux').connect;
-var Actions = require("../actions/actions")
-var reactCookie = require("react-cookie");
-
-exports.RequireAuth = function(nextState, replaceState){
-    var session = reactCookie.load("session") || "";
-    if (session == "" ){
-        replaceState({ nextPathname: nextState.location.pathname }, '/auth');
-    }
-}
+var Auth = require("../actions/authAction");
 
 class LoginCreateForm extends React.Component{
     render(){
@@ -50,25 +42,19 @@ class AuthController extends React.Component {
         this.clickCreateAccount = this.clickCreateAccount.bind(this);
     }
     changeUsername(event) {
-        var action = Actions.changeUsername({
-            username:event.target.value
-        });
-        Actions.Do(this.props.dispatch, action);
+        var username = event.target.value;
+        Auth.ChangeUsername(this.props.dispatch, username);
     }
     changePassword(event) {
-        var action = Actions.changePassword({
-            password:event.target.value
-        });
-        Actions.Do(this.props.dispatch, action);
+        var password = event.target.value;
+        Auth.ChangePassword(this.props.dispatch, password);
     }
     changeRepeat(event) {
-        var action = Actions.changeRepeat({
-            repeat:event.target.value
-        });
-        Actions.Do(this.props.dispatch, action);
+        var repeat = event.target.value;
+        Auth.ChangeRepeat(this.props.dispatch, repeat);
     }
     clickLogin() {
-        Actions.Login(
+        Auth.Login(
             this.props.dispatch, 
             this.props.username, 
             this.props.password,
@@ -76,7 +62,7 @@ class AuthController extends React.Component {
         );
     }
     clickCreateAccount() {
-        Actions.CreateAccount(
+        Auth.CreateAccount(
             this.props.dispatch, 
             this.props.username, 
             this.props.password,
@@ -107,10 +93,10 @@ class AuthController extends React.Component {
 
 var dataMapper = function(state){
     return {
-        isFetching: state.auth.isFetching,
-        username: state.auth.username,
-        password: state.auth.password,
-        repeat: state.auth.repeat
+        isFetching: state.Auth.isFetching,
+        username: state.Auth.username,
+        password: state.Auth.password,
+        repeat: state.Auth.repeat
     };
 }
 exports.AuthController = connect(dataMapper)(AuthController);
@@ -122,7 +108,7 @@ class Logout extends React.Component {
         this.clickLogout = this.clickLogout.bind(this);
     }
     clickLogout() {
-        Actions.Logout(this.props.dispatch, this.props.history);
+        Auth.Logout(this.props.dispatch, this.props.history);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
@@ -140,7 +126,7 @@ class Logout extends React.Component {
 };
 var logoutMapper = function(state){
     return {
-        loggedIn:state.logout.loggedIn
+        loggedIn:state.Logout.loggedIn
     }; 
 };
 exports.Logout = connect(logoutMapper)(Logout);

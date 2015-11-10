@@ -1,14 +1,14 @@
 "use strict"
 var React = require("react");
 
-class Dashboard extends React.Component {
+class IndexController extends React.Component {
     render(){
         return (
             <div>
-                Home page
+                Index page
             </div>
         )
     }
 }
-exports.Dashboard = Dashboard;
+exports.IndexController = IndexController;
 

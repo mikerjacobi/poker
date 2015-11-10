@@ -1,15 +1,7 @@
+"use strict"
 var reactCookie = require("react-cookie");
-require("whatwg-fetch")
-
-//math actions
-exports.INCREMENT = 'INCREMENT'
-exports.DECREMENT = 'DECREMENT'
-exports.SQUARE = 'SQUARE'
-exports.ROOT = 'ROOT'
-
-//async get actions
-exports.GET = 'GET'
-exports.FETCH = 'FETCH'
+var Config = require("../common").Config;
+require("whatwg-fetch");
 
 //auth actions
 exports.AUTHFETCH = 'AUTHFETCH'
@@ -20,68 +12,31 @@ exports.LOGIN = 'LOGIN'
 exports.LOGOUT = 'LOGOUT'
 exports.CREATEACCOUNT = 'CREATEACCOUNT'
 
-exports.increment = function(action) {
-    action.type = exports.INCREMENT;
-    return action;
+exports.ChangeUsername = function(dispatch, username){
+    var action = {
+        type:exports.CHANGEUSERNAME,
+        username:username
+    }
+    dispatch(action);
 }
-exports.decrement = function(action) {
-    action.type = exports.DECREMENT;
-    return action;
+exports.ChangePassword = function(dispatch, password){
+    var action = {
+        type:exports.CHANGEPASSWORD,
+        password:password
+    }
+    dispatch(action);
 }
-exports.square = function(action) {
-    action.type = exports.SQUARE;
-    return action
-}
-exports.root = function(action) {
-    action.type = exports.ROOT;
-    return action
-}
-
-exports.getA = function(action) {
-    action.type = exports.GET;
-    action.timeout = 500;
-    action.url = "http://jacobra.com:8004/geta";
-    return action
-}
-exports.getB = function(action) {
-    action.type = exports.GET;
-    action.timeout = 3000;
-    action.url = "http://jacobra.com:8004/getb";
-    return action
-}
-
-exports.Get = function(dispatch, action){
-    dispatch({type:exports.FETCH});
-    fetch(action.url, {headers:{"x-session":reactCookie.load("session") || ""}})
-    .then(function(resp){
-        return resp.json();
-    }).then(function(json){
-        action.data = json.payload.data;
-        setTimeout(function(){
-            dispatch(action);
-        }, action.timeout);
-    }).catch(function(err){
-        action.data = err;
-        dispatch(action);
-    })
-}
-
-exports.changeUsername = function(action){
-    action.type = exports.CHANGEUSERNAME;
-    return action;
-}
-exports.changePassword = function(action){
-    action.type = exports.CHANGEPASSWORD;
-    return action;
-}
-exports.changeRepeat = function(action){
-    action.type = exports.CHANGEREPEAT;
-    return action;
+exports.ChangeRepeat = function(dispatch, repeat){
+    var action = {
+        type:exports.CHANGEREPEAT,
+        repeat:repeat
+    }
+    dispatch(action);
 }
 exports.CreateAccount = function(dispatch, username, password, repeat){
     dispatch({type:exports.AUTHFETCH});
 
-    url = "http://jacobra.com:8004/create_account"
+    url = Config.baseURL + "/create_account"
     action = {type: exports.CREATEACCOUNT};
 
     var data = JSON.stringify({
@@ -116,7 +71,7 @@ exports.CreateAccount = function(dispatch, username, password, repeat){
 exports.Login = function(dispatch, username, password, history){
     dispatch({type:exports.AUTHFETCH});
 
-    var url = "http://jacobra.com:8004/login"
+    var url = Config.baseURL + "/login"
     var action = {type: exports.LOGIN, history:history, success:false};
 
     var data = JSON.stringify({
@@ -156,7 +111,7 @@ exports.Login = function(dispatch, username, password, history){
 }
 
 exports.Logout = function(dispatch, history){
-    var url = "http://jacobra.com:8004/logout"
+    var url = Config.baseURL + "/logout"
     var action = {type: exports.LOGOUT, history:history, success:false};
 
     fetch(url,{
@@ -181,8 +136,3 @@ exports.Logout = function(dispatch, history){
         dispatch(action);
     })
 }
-
-exports.Do = function(dispatch, action){
-    dispatch(action);
-}
-

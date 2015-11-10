@@ -1,7 +1,7 @@
 "use strict"
 var React = require("react");
 var connect =  require('react-redux').connect;
-var Actions = require("../actions/actions")
+var Async = require("../actions/asyncAction")
 
 class GetWidget extends React.Component {
     render(){
@@ -19,17 +19,17 @@ class GetWidget extends React.Component {
     }
 };
 
-class AsyncGet extends React.Component {
+class AsyncController extends React.Component {
     constructor(props){
         super(props);
         this.getA = this.getA.bind(this);
         this.getB = this.getB.bind(this);
     }
     getA(){
-        Actions.Get(this.props.dispatch, Actions.getA({}));
+        Async.Get(this.props.dispatch, Async.GetA());
     }
     getB(){
-        Actions.Get(this.props.dispatch, Actions.getB({}));
+        Async.Get(this.props.dispatch, Async.GetB());
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
@@ -49,8 +49,8 @@ class AsyncGet extends React.Component {
 };
 var dataMapper = function(state){
     return {
-        data: state.asyncget.data,
-        isFetching: state.asyncget.isFetching
+        data: state.Async.data,
+        isFetching: state.Async.isFetching
     };
 }
-exports.AsyncGet = connect(dataMapper)(AsyncGet);
+exports.AsyncController = connect(dataMapper)(AsyncController);
