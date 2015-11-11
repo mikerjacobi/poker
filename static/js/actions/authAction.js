@@ -9,6 +9,7 @@ exports.CHANGEUSERNAME = 'CHANGEUSERNAME'
 exports.CHANGEPASSWORD = 'CHANGEPASSWORD'
 exports.CHANGEREPEAT = 'CHANGEREPEAT'
 exports.LOGIN = 'LOGIN'
+exports.NEXTPATH = 'NEXTPATH'
 exports.LOGOUT = 'LOGOUT'
 exports.CREATEACCOUNT = 'CREATEACCOUNT'
 
@@ -66,6 +67,14 @@ exports.CreateAccount = function(dispatch, username, password, repeat){
         dispatch(action);
     })
 
+}
+
+exports.SetNextPath = function(dispatch, nextPath){
+    var action = {
+        type: exports.NEXTPATH,
+        nextPath: nextPath
+    };
+    dispatch(action);
 }
 
 exports.Login = function(dispatch, username, password, history){

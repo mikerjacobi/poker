@@ -39,7 +39,8 @@ exports.Auth = function(state, action){
             isFetching:false,
             username:"",
             password:"",
-            repeat:""
+            repeat:"",
+            nextPath:"/"
         }
     }
     var newState = {};
@@ -57,11 +58,15 @@ exports.Auth = function(state, action){
     case Auth.CHANGEREPEAT:
         newState.repeat = action.repeat;
         break;
+    case Auth.NEXTPATH:
+        newState = {nextPath:action.nextPath};
+        break;
     case Auth.LOGIN:
         newState = {isFetching:false};
         if (action.success) {
             reactCookie.save('session', action.session_id);
-            action.history.replaceState({ nextPathname: "/auth"}, '/')
+            newState.nextPath = "/";
+            action.history.replaceState({ nextPathname: "/auth"}, state.nextPath);
         } else {
             console.log(action.error);
         }

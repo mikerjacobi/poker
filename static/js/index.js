@@ -50,7 +50,7 @@ render((
     <router.Router>
         <router.Route path="/" component={App}>
             <router.IndexRoute component={IndexController} />
-            <router.Route path="math" component={MathController} onEnter={RequireAuth} />
+            <router.Route path="math" component={MathController} onEnter={RequireAuth(store)} />
             <router.Route path="async" component={AsyncController} />
             <router.Route path="auth" component={AuthController} />
         </router.Route> 
