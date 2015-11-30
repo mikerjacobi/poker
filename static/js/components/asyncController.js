@@ -26,25 +26,27 @@ class AsyncController extends React.Component {
         this.getB = this.getB.bind(this);
     }
     getA(){
-        Async.Get(this.props.dispatch, Async.GetA());
+        Async.GetA(this.props.dispatch);
     }
     getB(){
-        Async.Get(this.props.dispatch, Async.GetB());
+        Async.GetB(this.props.dispatch);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
     }
     render() {
-        return(
-            <div> 
+        var data = <div> loading... </div>;
+        if (!this.props.isFetching){
+            data = <div> 
                 <GetWidget
                     isFetching={this.props.isFetching}
                     data={this.props.data}
                     getA={this.getA}
                     getB={this.getB}>
                 </GetWidget>
-            </div> 
-        )
+            </div> ;
+        }
+        return data;
     }
 };
 var dataMapper = function(state){

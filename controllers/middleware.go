@@ -13,7 +13,19 @@ import (
 func CheckAuth() echo.HandlerFunc {
 	return func(c *echo.Context) error {
 		loggedIn := false
-		sessionID := c.Request().Header.Get("x-session")
+		sessionID := ""
+
+		//if this is a websocket connection, check cookies
+		if (c.Request().Header.Get(echo.Upgrade)) == echo.WebSocket {
+			sessionCookie, err := c.Request().Cookie("session")
+			if err != nil {
+				return err
+			}
+			sessionID = sessionCookie.Value
+		} else {
+			sessionID = c.Request().Header.Get("x-session")
+		}
+
 		if db, ok := c.Get("db").(*mgo.Database); sessionID != "" && ok {
 			account, err := models.CheckSession(db, sessionID)
 			if err != nil {

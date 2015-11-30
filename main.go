@@ -61,19 +61,21 @@ func main() {
 	router.Use(controllers.CheckAuth())
 
 	// unauthed routes
-	router.Index("static/html/index.html")
+	router.Index("static/index.html")
+	router.Favicon("static/favicon.ico")
 	router.Get("/geta", controllers.GetA)
 	router.Get("/getb", controllers.GetB)
 	router.Post("/create_account", controllers.CreateAccount)
 	router.Get("/hello", hello)
 	router.Post("/login", controllers.Login)
-	router.Get("/favicon.ico", hello)
 	router.Static("/s/", "static")
 
 	// auth routes
 	auth := router.Group("")
 	auth.Use(controllers.RequireAuth())
 	auth.Get("/authhello", authhello)
+	auth.Get("/math", controllers.GetMathCount)
+	auth.WebSocket("/ws", controllers.HandleWebSocket)
 	auth.Post("/logout", controllers.Logout)
 	auth.Post("/game", controllers.CreateGame)
 	auth.Get("/game/:game_id", controllers.GetGame)

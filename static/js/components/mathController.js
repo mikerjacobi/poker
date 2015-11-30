@@ -1,8 +1,9 @@
 "use strict"
 
 var React = require("react");
-var connect =  require('react-redux').connect;
-var Math  = require("../actions/mathAction");
+var connect = require('react-redux').connect;
+var Math = require("../actions/mathAction");
+var Auth = require("../actions/authAction");
 
 class Counter extends React.Component {
     render() {
@@ -25,37 +26,45 @@ class MathController extends React.Component {
         this.square = this.square.bind(this)
         this.sqrt = this.sqrt.bind(this)
     }
+    componentDidMount() {
+        Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
+        Math.Initialize(this.props.dispatch, this.props.initialized);
+    }
     increment(){
-        Math.Increment(this.props.dispatch);
+        Math.Increment(this.props.dispatch, this.props.wsConnection);
     }
     decrement(){
-        Math.Decrement(this.props.dispatch);
+        Math.Decrement(this.props.dispatch, this.props.wsConnection);
     }
     square(){
-        Math.Square(this.props.dispatch);
+        Math.Square(this.props.dispatch, this.props.wsConnection);
     }
     sqrt(){
-        Math.Sqrt(this.props.dispatch);
+        Math.Sqrt(this.props.dispatch, this.props.wsConnection);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
     }
     render() {
-        return (
-            <Counter 
-                count={this.props.count} 
-                increment={this.increment}
-                decrement={this.decrement}
-                square={this.square}
-                sqrt={this.sqrt}>
-            </Counter>
-        )
+        var data = <div> loading... </div>;
+        if (this.props.initialized){
+            data = <Counter 
+                    count={this.props.count} 
+                    increment={this.increment}
+                    decrement={this.decrement}
+                    square={this.square}
+                    sqrt={this.sqrt}>
+                </Counter>;
+        }
+        return data;
     }
 };
 
 var dataMapper = function(state){
     return {
-        count: state.Math.count
+        count: state.Math.count,
+        initialized: state.Math.initialized,
+        wsConnection: state.Auth.wsConnection
     };
 }
 

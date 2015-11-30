@@ -3,41 +3,40 @@ var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
 require("whatwg-fetch");
 
-//async get actions
-exports.GET = 'GET'
-exports.FETCH = 'FETCH'
+//async actions
+exports.GET = 'ASYNCGET'
+exports.FETCH = 'ASYNCFETCH'
+exports.FETCHED = 'ASYNCFETCHED'
 
-exports.GetA = function() {
-    var action = {
-        type:exports.GET,
-        timeout:500,
-        url:Config.baseURL + "/geta"
-    };
-    return action
-}
-exports.GetB = function() {
-    var action = {
-        type:exports.GET,
-        timeout:3000,
-        url:Config.baseURL + "/getb"
-    };
-    return action
-}
+var Get = function(dispatch, url, timeout){
+    var action = {type: exports.GET};
 
-exports.Get = function(dispatch, action){
-    dispatch({type:exports.FETCH});
-    fetch(action.url, {headers:{"x-session":reactCookie.load("session") || ""}})
+    fetch(url, {headers:{"x-session":reactCookie.load("session") || ""}})
     .then(function(resp){
         return resp.json();
     }).then(function(json){
-        action.data = json.payload.data;
         setTimeout(function(){
+            action.data = json.payload.data;
             dispatch(action);
-        }, action.timeout);
+            dispatch({type:exports.FETCHED});
+        }, timeout);
     }).catch(function(err){
         action.data = err;
         dispatch(action);
+        dispatch({type:exports.FETCHED});
     })
-}
+};
 
+exports.GetA = function(dispatch) {
+    dispatch({type:exports.FETCH});
+    var url = Config.baseURL + "/geta"
+    var timeout = 500;
+    Get(dispatch, url, timeout);
+};
 
+exports.GetB = function(dispatch) {
+    dispatch({type:exports.FETCH});
+    var url = Config.baseURL + "/getb"
+    var timeout = 3000;
+    Get(dispatch, url, timeout);
+};

@@ -1,87 +1,68 @@
 "use strict"
 var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
+var Nav = require("./navAction")
+var LoginCreate = require("./loginCreateAction")
 require("whatwg-fetch");
 
 //auth actions
-exports.AUTHFETCH = 'AUTHFETCH'
-exports.CHANGEUSERNAME = 'CHANGEUSERNAME'
-exports.CHANGEPASSWORD = 'CHANGEPASSWORD'
-exports.CHANGEREPEAT = 'CHANGEREPEAT'
-exports.LOGIN = 'LOGIN'
-exports.NEXTPATH = 'NEXTPATH'
-exports.LOGOUT = 'LOGOUT'
-exports.CREATEACCOUNT = 'CREATEACCOUNT'
+exports.LOGIN = 'LOGIN';
+exports.LOGOUT = 'LOGOUT';
+exports.WSCONNECT = 'WSCONNECT';
+exports.WSDISCONNECT = 'WSDISCONNECT';
 
-exports.ChangeUsername = function(dispatch, username){
-    var action = {
-        type:exports.CHANGEUSERNAME,
-        username:username
+exports.wsConnect = function(dispatch, currentWSConnection){
+    var loggedIn = (reactCookie.load("session") || "") != "";
+
+    //only attempt to wsconnect if we are logged in and dont have a ws conn
+    if (!loggedIn || currentWSConnection){
+        return false;
     }
-    dispatch(action);
-}
-exports.ChangePassword = function(dispatch, password){
-    var action = {
-        type:exports.CHANGEPASSWORD,
-        password:password
+
+    var action = {type:exports.WSCONNECT};
+    try{
+        var wsConnection = new WebSocket(Config.wsURL); 
+    } catch(err){
+        return false;
     }
-    dispatch(action);
-}
-exports.ChangeRepeat = function(dispatch, repeat){
-    var action = {
-        type:exports.CHANGEREPEAT,
-        repeat:repeat
-    }
-    dispatch(action);
-}
-exports.CreateAccount = function(dispatch, username, password, repeat){
-    dispatch({type:exports.AUTHFETCH});
+    action.wsConnection = wsConnection;
 
-    url = Config.baseURL + "/create_account"
-    action = {type: exports.CREATEACCOUNT};
+    wsConnection.onopen = function () {
+        wsConnection.send('ping'); 
+    };
 
-    var data = JSON.stringify({
-        "username":username,
-        "password":password,
-        "repeat":repeat     
-    });
+    wsConnection.onerror = function (error) {
+        console.log('ws error: ' + error);
+    };
 
-    fetch(url,{
-        method:"post",
-        body:data,
-        headers: {
-            "x-session":reactCookie.load("session") || "",
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-    })
-    .then(function(resp){
-        return resp.json();
-    }).then(function(json){
-        action.success = true;
-        action.resp = json;
-        dispatch(action);
-    }).catch(function(err){
-        action.success = false;
-        action.resp = err;
-        dispatch(action);
-    })
-
-}
-
-exports.SetNextPath = function(dispatch, nextPath){
-    var action = {
-        type: exports.NEXTPATH,
-        nextPath: nextPath
+    wsConnection.onmessage = function(event) {
+        try{
+            var msg = JSON.parse(event.data);
+        } catch(err){
+            console.log(event.data);
+            console.log("JSON parse error: ", err);
+            return;
+        }
+        dispatch(msg);
     };
     dispatch(action);
+    return true;
 }
 
-exports.Login = function(dispatch, username, password, history){
-    dispatch({type:exports.AUTHFETCH});
+exports.wsDisconnect = function(dispatch, wsConnection){
+    if (wsConnection == false){
+        return;
+    }
+    wsConnection.close();
+    dispatch({type:exports.WSDISCONNECT});
+}
+
+
+exports.Login = function(dispatch, username, password, wsConn, history){
+    dispatch({type:LoginCreate.FETCH});
 
     var url = Config.baseURL + "/login"
-    var action = {type: exports.LOGIN, history:history, success:false};
+    var action = {type: exports.LOGIN};
 
     var data = JSON.stringify({
         "username":username,
@@ -98,32 +79,40 @@ exports.Login = function(dispatch, username, password, history){
         },
     })
     .then(function(resp){
+        var err = "";
         if (resp.status == 200){
-            action.success = true;
+            LoginCreate.ClearForm(dispatch, true);
+            return resp.json();
         } else if (resp.status == 400){
-            action.error = "bad login input";
+            err = "bad login input";
         } else if (resp.status == 401){
-            action.error = "bad login creds";
+            err = "bad login creds";
         } else {
-            action.error = "login unknown";
+            err = "login unknown";
         }
-        return resp.json();
+        LoginCreate.ClearForm(dispatch, false);
+        throw err;
     }).then(function(json){
-        if (action.success == true){
-            action.session_id = json.payload.session_id;
+        action.session_id = json.payload.session_id;
+        dispatch(action);
+
+        //if we create a new ws, gonextpath
+        if (exports.wsConnect(dispatch, wsConn)){
+            Nav.GoNextPath(dispatch, history);
+        } else {
+            exports.Logout(dispatch, false)
         }
-        dispatch(action);
     }).catch(function(err){
-        action.error = err;
-        dispatch(action);
+        console.log(err);
     })
+    dispatch({type:LoginCreate.FETCHED});
 }
 
-exports.Logout = function(dispatch, history){
-    var url = Config.baseURL + "/logout"
-    var action = {type: exports.LOGOUT, history:history, success:false};
+exports.Logout = function(dispatch, wsConn){
+    Nav.SetNextPath(dispatch, "/auth");
 
-    fetch(url,{
+    var url = Config.baseURL + "/logout"
+    fetch(url, {
         method:"post",
         headers: {
             "x-session":reactCookie.load("session") || "",
@@ -132,16 +121,19 @@ exports.Logout = function(dispatch, history){
         },
     })
     .then(function(resp){
+        var err = "";
         if (resp.status == 200){
-            action.success = true;
+            //close web socket connection
+            exports.wsDisconnect(dispatch, wsConn);
+            dispatch({type: exports.LOGOUT});
+            return;
         } else if (resp.status == 401){
-            action.error = "bad logout creds";
+            err = "bad logout creds";
         } else {
-            action.error = "logout unknown";
+            err = "logout unknown";
         }
-        dispatch(action);
+        throw err;
     }).catch(function(err){
-        action.error = err;
-        dispatch(action);
+        console.log(err);
     })
 }

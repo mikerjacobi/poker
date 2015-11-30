@@ -2,6 +2,8 @@
 var React = require('react')
 var connect =  require('react-redux').connect;
 var Auth = require("../actions/authAction");
+var LoginCreate = require("../actions/loginCreateAction");
+var Nav = require("../actions/navAction");
 
 class LoginCreateForm extends React.Component{
     render(){
@@ -41,28 +43,32 @@ class AuthController extends React.Component {
         this.clickLogin = this.clickLogin.bind(this);
         this.clickCreateAccount = this.clickCreateAccount.bind(this);
     }
+    componentDidMount() {
+        Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
+    }
     changeUsername(event) {
         var username = event.target.value;
-        Auth.ChangeUsername(this.props.dispatch, username);
+        LoginCreate.ChangeUsername(this.props.dispatch, username);
     }
     changePassword(event) {
         var password = event.target.value;
-        Auth.ChangePassword(this.props.dispatch, password);
+        LoginCreate.ChangePassword(this.props.dispatch, password);
     }
     changeRepeat(event) {
         var repeat = event.target.value;
-        Auth.ChangeRepeat(this.props.dispatch, repeat);
+        LoginCreate.ChangeRepeat(this.props.dispatch, repeat);
     }
     clickLogin() {
         Auth.Login(
             this.props.dispatch, 
             this.props.username, 
             this.props.password,
+            this.props.wsConnection,
             this.props.history
         );
     }
     clickCreateAccount() {
-        Auth.CreateAccount(
+        LoginCreate.CreateAccount(
             this.props.dispatch, 
             this.props.username, 
             this.props.password,
@@ -91,15 +97,16 @@ class AuthController extends React.Component {
     }
 }
 
-var dataMapper = function(state){
+var loginMapper = function(state){
     return {
-        isFetching: state.Auth.isFetching,
-        username: state.Auth.username,
-        password: state.Auth.password,
-        repeat: state.Auth.repeat
+        isFetching: state.LoginCreate.isFetching,
+        username: state.LoginCreate.username,
+        password: state.LoginCreate.password,
+        repeat: state.LoginCreate.repeat,
+        wsConnection: state.Auth.wsConnection
     };
 }
-exports.AuthController = connect(dataMapper)(AuthController);
+exports.AuthController = connect(loginMapper)(AuthController);
 
 
 class Logout extends React.Component {
@@ -108,7 +115,8 @@ class Logout extends React.Component {
         this.clickLogout = this.clickLogout.bind(this);
     }
     clickLogout() {
-        Auth.Logout(this.props.dispatch, this.props.history);
+        Auth.Logout(this.props.dispatch, this.props.wsConnection);
+        Nav.GoNextPath(this.props.dispatch, this.props.history);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
@@ -126,7 +134,8 @@ class Logout extends React.Component {
 };
 var logoutMapper = function(state){
     return {
-        loggedIn:state.Logout.loggedIn
+        loggedIn:state.Auth.loggedIn,
+        wsConnection: state.Auth.wsConnection
     }; 
 };
 exports.Logout = connect(logoutMapper)(Logout);

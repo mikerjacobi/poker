@@ -1,84 +1,39 @@
 var Auth = require("../actions/authAction");
 var reactCookie = require("react-cookie");
+var Config = require("../common").Config;
 
-var getInitialState = function(){
+var getInitialAuthState = function(){
     var loggedIn = (reactCookie.load("session") || "") != "";
     return {
-        loggedIn:loggedIn
+        isFetching:false,
+        username:"",
+        password:"",
+        repeat:"",
+        loggedIn:loggedIn,
+        wsConnection: false,
     };
 };
-exports.Logout = function(state, action){
-    if (state == undefined){
-        state = getInitialState();
-    };
-
-    var newState = {loggedIn:false};
-    switch (action.type){
-    case Auth.LOGIN:
-        newState.loggedIn = true;
-        break;
-    case Auth.LOGOUT:
-        if (action.success) {
-            reactCookie.remove('session');
-            action.history.replaceState({ nextPathname: "/"}, '/');
-            return getInitialState();
-        } else {
-            console.log(action.error);
-        }
-        break;
-    default:
-        return state;
-    }
-    nextState = Object.assign({}, state, newState);
-    return nextState;
-}
 
 exports.Auth = function(state, action){
     if (state == undefined){
-        state = {
-            isFetching:false,
-            username:"",
-            password:"",
-            repeat:"",
-            nextPath:"/"
-        }
+        state = getInitialAuthState();
     }
     var newState = {};
 
     switch (action.type){
-    case Auth.AUTHFETCH:
-        newState = {isFetching:true};
-        break;
-    case Auth.CHANGEUSERNAME:
-        newState.username = action.username;
-        break;
-    case Auth.CHANGEPASSWORD:
-        newState.password = action.password;
-        break;
-    case Auth.CHANGEREPEAT:
-        newState.repeat = action.repeat;
-        break;
-    case Auth.NEXTPATH:
-        newState = {nextPath:action.nextPath};
-        break;
     case Auth.LOGIN:
-        newState = {isFetching:false};
-        if (action.success) {
-            reactCookie.save('session', action.session_id);
-            newState.nextPath = "/";
-            action.history.replaceState({ nextPathname: "/auth"}, state.nextPath);
-        } else {
-            console.log(action.error);
-        }
-        break;
-    case Auth.CREATEACCOUNT:
-        newState = {isFetching:false};
-        if (!action.success) {
-            console.log("failed to login");
-        }
+        reactCookie.save('session', action.session_id);
+        newState.loggedIn = true;
         break;
     case Auth.LOGOUT:
-        return getInitialState();
+        reactCookie.remove('session');
+        return getInitialAuthState();
+    case Auth.WSCONNECT:
+        newState = {wsConnection:action.wsConnection};
+        break;
+    case Auth.WSDISCONNECT:
+        newState = {wsConnection:false};
+        break;
     default:
         return state;
     }

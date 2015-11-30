@@ -1,5 +1,4 @@
 var Async = require("../actions/asyncAction");
-var Auth = require("../actions/authAction");
 
 var getInitialState = function(){
     return {
@@ -13,22 +12,22 @@ exports.Async = function(state, action){
         state = getInitialState();
     }
 
+    var newState = {}
     switch (action.type){
     case Async.FETCH:
-        nextState = {
-            isFetching:true
-        };
-        return nextState;
+        newState = {isFetching:true};
+        break;
+    case Async.FETCHED:
+        newState = {isFetching:false};
+        break;
     case Async.GET:
-        nextState = {
-            isFetching:false,
-            data: action.data
-        };
-        return nextState;
-    case Auth.LOGOUT:
-        return getInitialState();
+        newState = {data: action.data};
+        break;
     default:
         return state;
     }
+
+    nextState = Object.assign({}, state, newState);
+    return nextState;
 };
 
