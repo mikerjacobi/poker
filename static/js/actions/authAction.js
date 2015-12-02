@@ -134,6 +134,9 @@ exports.Logout = function(dispatch, wsConn){
         }
         throw err;
     }).catch(function(err){
+        //close web socket connection
+        exports.wsDisconnect(dispatch, wsConn);
+        dispatch({type: exports.LOGOUT});
         console.log(err);
     })
 }

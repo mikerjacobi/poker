@@ -53,7 +53,7 @@ func Login(c *echo.Context) error {
 	db := c.Get("db").(*mgo.Database)
 	account, err := models.LoadAccount(db, loginRequest.Username)
 	if err != nil {
-		logrus.Errorf("failed to load account in login")
+		logrus.Errorf("failed to load account in login: %s", err)
 		c.JSON(500, Response{})
 		return nil
 	}

@@ -36,8 +36,8 @@ exports.ChangeRepeat = function(dispatch, repeat){
 exports.CreateAccount = function(dispatch, username, password, repeat){
     dispatch({type:exports.FETCH});
 
-    url = Config.baseURL + "/create_account"
-    action = {type: exports.CREATEACCOUNT};
+    var url = Config.baseURL + "/create_account"
+    var action = {type: exports.CREATEACCOUNT};
 
     var data = JSON.stringify({
         "username":username,

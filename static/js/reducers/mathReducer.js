@@ -20,16 +20,16 @@ exports.Math = function(state, action) {
         newState.initialized = true;
         break;
     case MathActions.INCREMENT:
-        newState.count = state.count + 1;
+        newState.count = action.count;
         break;
     case MathActions.DECREMENT:
-        newState.count = state.count - 1;
+        newState.count = action.count;
         break;
     case MathActions.SQUARE:
-        newState.count = state.count * state.count;
+        newState.count = action.count;
         break;
     case MathActions.SQRT:
-        newState.count = Math.sqrt(state.count);
+        newState.count = action.count;
         break;
     case Auth.LOGIN:
         return getInitialState();

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 	"github.com/mikerjacobi/poker/controllers"
@@ -18,7 +18,7 @@ func hello(c *echo.Context) error {
 }
 func authhello(c *echo.Context) error {
 	h := c.Request().Header.Get("Authorization")
-	log.Infof("header: %+v", h)
+	logrus.Infof("header: %+v", h)
 	return c.String(http.StatusOK, "auth Hello, World!\n")
 }
 
@@ -49,6 +49,10 @@ func main() {
 		panic(err)
 	}
 	defer session.Close()
+	db := session.Clone().DB(viper.GetString("database"))
+	if err := controllers.InitializeMessageHandler(db); err != nil {
+		logrus.Panicf("failed to init message handler")
+	}
 
 	router := echo.New()
 
@@ -83,6 +87,6 @@ func main() {
 	auth.Post("/game/:game_id/join", controllers.JoinGame)
 
 	// start server
-	log.Info("starting server")
+	logrus.Info("starting server")
 	router.Run("0.0.0.0:80")
 }

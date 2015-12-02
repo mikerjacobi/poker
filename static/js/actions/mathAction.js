@@ -1,4 +1,5 @@
 var Config = require("../common").Config;
+var Auth = require("./authAction");
 
 //math actions
 exports.INCREMENT = 'INCREMENT'
@@ -35,7 +36,6 @@ exports.Initialize = function(dispatch, initialized){
         action.count = json.payload.count;
         dispatch(action);
     }).catch(function(err){
-        action.data = err;
-        dispatch(action);
+        dispatch({type: Auth.LOGOUT});
     })
 };
