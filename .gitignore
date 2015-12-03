@@ -1,5 +1,7 @@
 poker
 static/node_modules
+static/semantic/dist/
+static/semantic/tasks
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

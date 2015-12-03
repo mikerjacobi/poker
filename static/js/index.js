@@ -38,7 +38,13 @@ class App extends React.Component {
                     <router.Link onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
                     <Logout history={this.props.history}/>
                      
-                    <br/><br/>
+                    <div className="column">
+                        <div className="ui one column stackable padded middle aligned centered color grid">
+                              <div className="blue column"></div>
+                        </div>
+                    </div>
+                    <br/>
+
                     {this.props.children}
                 </div>
             </Provider>
