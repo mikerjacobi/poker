@@ -35,15 +35,13 @@ type MathQueue struct {
 	Count int
 	DB    *mgo.Database
 	Q     chan MathMessage
-	//SendAll func(interface{}) error
-	MH *MessageHandler
+	CQ    *CommsQueue
 }
 
-func NewMathQueue(db *mgo.Database, mh *MessageHandler) (MathQueue, error) {
+func NewMathQueue(db *mgo.Database, cq *CommsQueue) (MathQueue, error) {
 	mq := MathQueue{
 		DB: db,
-		//SendAll: sendAll,
-		MH: mh,
+		CQ: cq,
 	}
 
 	c, err := LoadMathCount(db)
@@ -62,22 +60,22 @@ func (mq MathQueue) ReadMessages() {
 		switch mathMessage.Type {
 		case Increment:
 			if err := mq.HandleIncrement(); err != nil {
-				logrus.Errorf("failed to increment")
+				logrus.Errorf("failed to increment: %s", err)
 				continue
 			}
 		case Decrement:
 			if err := mq.HandleDecrement(); err != nil {
-				logrus.Errorf("failed to decrement")
+				logrus.Errorf("failed to decrement: %s", err)
 				continue
 			}
 		case Square:
 			if err := mq.HandleSquare(); err != nil {
-				logrus.Errorf("failed to square")
+				logrus.Errorf("failed to square: %s", err)
 				continue
 			}
 		case Sqrt:
 			if err := mq.HandleSqrt(); err != nil {
-				logrus.Errorf("failed to sqrt")
+				logrus.Errorf("failed to sqrt: %s", err)
 				continue
 			}
 		default:
@@ -99,7 +97,7 @@ func (mq MathQueue) HandleIncrement() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.MH.SendAll(m)
+	return mq.CQ.SendAll(m)
 }
 func (mq MathQueue) HandleDecrement() error {
 	c, err := LoadMathCount(mq.DB)
@@ -114,7 +112,7 @@ func (mq MathQueue) HandleDecrement() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.MH.SendAll(m)
+	return mq.CQ.SendAll(m)
 }
 func (mq MathQueue) HandleSquare() error {
 	c, err := LoadMathCount(mq.DB)
@@ -129,7 +127,7 @@ func (mq MathQueue) HandleSquare() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.MH.SendAll(m)
+	return mq.CQ.SendAll(m)
 }
 func (mq MathQueue) HandleSqrt() error {
 	c, err := LoadMathCount(mq.DB)
@@ -144,15 +142,16 @@ func (mq MathQueue) HandleSqrt() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.MH.SendAll(m)
+	return mq.CQ.SendAll(m)
 }
 
 func checkBounds(count int) int {
-	if count > 65536 {
-		return 65536
+	limit := 65536
+	if count > limit {
+		return limit
 	}
-	if count < -65536 {
-		return -65536
+	if count < -limit {
+		return -limit
 	}
 	return count
 }

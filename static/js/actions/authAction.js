@@ -28,8 +28,12 @@ exports.wsConnect = function(dispatch, currentWSConnection){
     action.wsConnection = wsConnection;
 
     wsConnection.onopen = function () {
-        wsConnection.send('ping'); 
+        wsConnection.send(JSON.stringify({type:exports.WSCONNECT})); 
     };
+
+    wsConnection.onclose = function(){
+        console.log("ws closed")
+    }
 
     wsConnection.onerror = function (error) {
         console.log('ws error: ' + error);
@@ -53,6 +57,7 @@ exports.wsDisconnect = function(dispatch, wsConnection){
     if (wsConnection == false){
         return;
     }
+    wsConnection.send(JSON.stringify({type:exports.WSDISCONNECT}));
     wsConnection.close();
     dispatch({type:exports.WSDISCONNECT});
 }

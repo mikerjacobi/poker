@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
@@ -31,26 +31,20 @@ func HandleWebSocket(c *echo.Context) error {
 		if len(c.Request().Header["Sec-Websocket-Key"]) == 1 {
 			wsID = c.Request().Header["Sec-Websocket-Key"][0]
 		} else {
-			logrus.Errorf("failed to pull websocket key from header")
-			continue
+			e := "failed to pull websocket key from header"
+			logrus.Errorf(e)
+			return errors.New(e)
 		}
 
 		if err := websocket.Message.Receive(ws, &msg); err != nil {
-			if err.Error() == "EOF" {
-				mh.Disconnect(wsID)
-				continue
-			} else {
-				return fmt.Errorf("failed to recv ws: %s", err.Error())
-			}
+			logrus.Errorf("failed to recv ws: %s", err.Error())
+			return err
 		}
 
-		mh.Connect(wsID, ws)
-
-		if err := mh.Push([]byte(msg), wsID); err != nil {
-			logrus.Errorf("failed to push msg: %s", err.Error())
+		if err := mh.HandleMessage([]byte(msg), wsID, ws); err != nil {
+			logrus.Errorf("failed to push msg %s because %s", msg, err.Error())
 			continue
 		}
-		logrus.Infof("%+v: %s", wsID, msg)
 	}
 	return nil
 }
