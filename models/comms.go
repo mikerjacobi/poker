@@ -62,7 +62,6 @@ func (cq CommsQueue) ReadMessages() {
 }
 
 func (cq CommsQueue) HandleConnect(cm CommsMessage) {
-	logrus.Infof("connecting %+v", cm.WebSocketID)
 	if (cq.Clients[cm.WebSocketID] != Client{}) {
 		return
 	}
@@ -72,7 +71,6 @@ func (cq CommsQueue) HandleConnect(cm CommsMessage) {
 	}
 }
 func (cq CommsQueue) HandleDisconnect(client Client) {
-	logrus.Infof("disconnecting %+v", client.WebSocketID)
 	delete(cq.Clients, client.WebSocketID)
 	client.WebSocket.Close()
 }

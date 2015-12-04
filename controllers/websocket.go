@@ -37,8 +37,8 @@ func HandleWebSocket(c *echo.Context) error {
 		}
 
 		if err := websocket.Message.Receive(ws, &msg); err != nil {
-			logrus.Errorf("failed to recv ws: %s", err.Error())
-			return err
+			//close connection gracefully
+			return c.JSON(200, Response{true, nil})
 		}
 
 		if err := mh.HandleMessage([]byte(msg), wsID, ws); err != nil {

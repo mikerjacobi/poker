@@ -36,12 +36,7 @@ func NewMessageHandler(db *mgo.Database) (MessageHandler, error) {
 	return mh, nil
 }
 
-func (mh MessageHandler) Disconnect(wsID string) {
-	//TODO enqueue a comms disconnect message
-}
-
 func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Conn) error {
-	logrus.Infof("%+v: %s", wsID, msg)
 	m := Message{
 		WebSocketID: wsID,
 		WebSocket:   ws,
@@ -55,12 +50,14 @@ func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Co
 		if err := json.Unmarshal(msg, &mathMessage); err != nil {
 			return err
 		}
+		logrus.Infof("%+v", mathMessage)
 		mh.MathQueue.Q <- mathMessage
 	} else if StringInSlice(m.Type, CommsActions) {
 		commsMessage := CommsMessage{Message: m}
 		if err := json.Unmarshal(msg, &commsMessage); err != nil {
 			return err
 		}
+		logrus.Infof("%+v", commsMessage)
 		mh.CommsQueue.Q <- commsMessage
 	} else {
 		return fmt.Errorf("%s is an invalid action", m.Type)

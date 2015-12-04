@@ -8,7 +8,6 @@ import (
 )
 
 func GetMathCount(c *echo.Context) error {
-	logrus.Infof("in get math count")
 	db := c.Get("db").(*mgo.Database)
 	counter, err := models.LoadMathCount(db)
 	if err != nil {
