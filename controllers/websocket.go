@@ -42,7 +42,7 @@ func HandleWebSocket(c *echo.Context) error {
 		}
 
 		if err := mh.HandleMessage([]byte(msg), wsID, ws); err != nil {
-			logrus.Errorf("failed to push msg %s because %s", msg, err.Error())
+			logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
 			continue
 		}
 	}

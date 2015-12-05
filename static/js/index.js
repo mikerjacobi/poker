@@ -19,6 +19,9 @@ var AuthController = require("./components/authController").AuthController;
 var IndexController = require("./components/indexController").IndexController;
 var Logout = require("./components/authController").Logout;
 
+//actions
+var Nav = require("./actions/navAction");
+
 const createStoreWithMiddleware = Redux.applyMiddleware(
     thunkMiddleware,
     loggerMiddleware
@@ -28,6 +31,9 @@ var initialState = GetInitialState();
 var store = createStoreWithMiddleware(Root, initialState);
 
 class App extends React.Component {
+    componentDidMount(){
+        Nav.SetHistory(store.dispatch, this.props.history);
+    }
     render() {
         return (
             <Provider store={store}>
@@ -38,7 +44,7 @@ class App extends React.Component {
                     <router.Link onClick={Common.SetPath(store)} to="/game">Game</router.Link> -- 
                     <router.Link onClick={Common.SetPath(store)} to="/async">Async</router.Link> -- 
                     <router.Link onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
-                    <Logout history={this.props.history}/>
+                    <Logout/>
                      
                     <div className="column">
                         <div className="ui one column stackable padded middle aligned centered color grid">

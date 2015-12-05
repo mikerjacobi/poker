@@ -19,6 +19,7 @@ type Client struct {
 var (
 	WSConnect    = "WSCONNECT"
 	WSDisconnect = "WSDISCONNECT"
+	WSError      = "WSERROR"
 )
 
 var CommsActions = []string{
@@ -33,13 +34,13 @@ type CommsMessage struct {
 type CommsQueue struct {
 	DB      *mgo.Database
 	Q       chan CommsMessage
-	Clients map[string]Client //websocket id = Client
+	Clients map[string]*Client //websocket id = Client
 }
 
 func NewCommsQueue(db *mgo.Database) (CommsQueue, error) {
 	cq := CommsQueue{
 		DB:      db,
-		Clients: map[string]Client{},
+		Clients: map[string]*Client{},
 	}
 
 	cq.Q = make(chan CommsMessage)
@@ -62,17 +63,36 @@ func (cq CommsQueue) ReadMessages() {
 }
 
 func (cq CommsQueue) HandleConnect(cm CommsMessage) {
-	if (cq.Clients[cm.WebSocketID] != Client{}) {
+	if cq.Clients[cm.WebSocketID] != nil {
+		//already connected
 		return
 	}
-	cq.Clients[cm.WebSocketID] = Client{
+	cq.Clients[cm.WebSocketID] = &Client{
 		WebSocket:   cm.WebSocket,
 		WebSocketID: cm.WebSocketID,
 	}
 }
-func (cq CommsQueue) HandleDisconnect(client Client) {
+func (cq CommsQueue) HandleDisconnect(client *Client) {
 	delete(cq.Clients, client.WebSocketID)
 	client.WebSocket.Close()
+}
+
+func (cq CommsQueue) Send(wsID string, msg interface{}) error {
+	msgJSON, err := json.Marshal(msg)
+	if err != nil {
+		return fmt.Errorf("failed to jsonmarshal CommsQueue.Send: %s", err.Error())
+	}
+
+	client := cq.Clients[wsID]
+	if client == nil {
+		return fmt.Errorf("unknown websocket id in CommsQueue.Send: %s", wsID)
+	}
+
+	if err := websocket.Message.Send(client.WebSocket, string(msgJSON)); err != nil {
+		logrus.Warnf("discarding dead ws conn from send: %s", client.WebSocketID)
+		cq.HandleDisconnect(client)
+	}
+	return nil
 }
 
 func (cq CommsQueue) SendAll(msg interface{}) error {
@@ -83,7 +103,7 @@ func (cq CommsQueue) SendAll(msg interface{}) error {
 
 	for _, client := range cq.Clients {
 		if err := websocket.Message.Send(client.WebSocket, string(msgJSON)); err != nil {
-			logrus.Warnf("discarding dead ws conn: %s", client.WebSocketID)
+			logrus.Warnf("discarding dead ws conn from sendall: %s", client.WebSocketID)
 			cq.HandleDisconnect(client)
 			continue
 		}

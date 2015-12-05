@@ -63,8 +63,7 @@ class AuthController extends React.Component {
             this.props.dispatch, 
             this.props.username, 
             this.props.password,
-            this.props.wsConnection,
-            this.props.history
+            this.props.wsConnection
         );
     }
     clickCreateAccount() {
@@ -116,7 +115,7 @@ class Logout extends React.Component {
     }
     clickLogout() {
         Auth.Logout(this.props.dispatch, this.props.wsConnection);
-        Nav.GoNextPath(this.props.dispatch, this.props.history);
+        Nav.GoNextPath(this.props.dispatch);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;

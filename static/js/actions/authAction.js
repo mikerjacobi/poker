@@ -2,6 +2,7 @@
 var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
 var Nav = require("./navAction")
+var Async = require("./asyncAction")
 var LoginCreate = require("./loginCreateAction")
 require("whatwg-fetch");
 
@@ -10,6 +11,7 @@ exports.LOGIN = 'LOGIN';
 exports.LOGOUT = 'LOGOUT';
 exports.WSCONNECT = 'WSCONNECT';
 exports.WSDISCONNECT = 'WSDISCONNECT';
+exports.WSERROR = 'WSERROR';
 
 exports.wsConnect = function(dispatch, currentWSConnection){
     var loggedIn = (reactCookie.load("session") || "") != "";
@@ -27,16 +29,27 @@ exports.wsConnect = function(dispatch, currentWSConnection){
     }
     action.wsConnection = wsConnection;
 
+    wsConnection.jsend = function(obj){
+        try{
+            var json = JSON.stringify(obj);
+        } catch(err){
+            console.log("failed to jsonmarshal: "+obj);
+            return;
+        }
+        wsConnection.send(json);
+    }
+
     wsConnection.onopen = function () {
-        wsConnection.send(JSON.stringify({type:exports.WSCONNECT})); 
+        wsConnection.jsend({type:exports.WSCONNECT}); 
     };
 
     wsConnection.onclose = function(){
         console.log("ws closed")
-    }
+    };
 
-    wsConnection.onerror = function (error) {
-        console.log('ws error: ' + error);
+    wsConnection.onerror = function (event) {
+        exports.wsError(dispatch);
+        console.log('ws error: ' + event);
     };
 
     wsConnection.onmessage = function(event) {
@@ -47,7 +60,14 @@ exports.wsConnect = function(dispatch, currentWSConnection){
             console.log("JSON parse error: ", err);
             return;
         }
-        dispatch(msg);
+
+        if (msg.type == exports.WSERROR){
+            //handle generic errors
+            exports.wsError(dispatch);
+            console.log("server returned ws error: ", event.data);
+        } else {
+            dispatch(msg);
+        }
     };
     dispatch(action);
     return true;
@@ -57,11 +77,15 @@ exports.wsDisconnect = function(dispatch, wsConnection){
     if (wsConnection == false){
         return;
     }
-    wsConnection.send(JSON.stringify({type:exports.WSDISCONNECT}));
+    wsConnection.jsend({type:exports.WSDISCONNECT});
     wsConnection.close();
     dispatch({type:exports.WSDISCONNECT});
 }
 
+exports.wsError = function(dispatch){
+    dispatch({type:Async.FETCHED});
+    dispatch({type:LoginCreate.FETCHED});
+}
 
 exports.Login = function(dispatch, username, password, wsConn, history){
     dispatch({type:LoginCreate.FETCH});

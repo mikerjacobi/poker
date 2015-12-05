@@ -1,5 +1,6 @@
 var Config = require("../common").Config;
 var Auth = require("./authAction");
+var Nav = require("./navAction");
 
 //math actions
 exports.INCREMENT = 'INCREMENT'
@@ -10,19 +11,19 @@ exports.INIT = 'MATHINIT'
 
 exports.Increment = function(dispatch, ws) {
     var action = {type:exports.INCREMENT};
-    ws.send(JSON.stringify(action));
+    ws.jsend(action);
 }
 exports.Decrement = function(dispatch, ws){
     var action = {type:exports.DECREMENT};
-    ws.send(JSON.stringify(action));
+    ws.jsend(action);
 }
 exports.Square = function(dispatch, ws){
     var action = {type:exports.SQUARE};
-    ws.send(JSON.stringify(action));
+    ws.jsend(action);
 }
 exports.Sqrt = function(dispatch, ws){
     var action = {type:exports.SQRT};
-    ws.send(JSON.stringify(action));
+    ws.jsend(action);
 }
 exports.Initialize = function(dispatch, initialized){
     if (initialized){return;}
@@ -36,6 +37,8 @@ exports.Initialize = function(dispatch, initialized){
         action.count = json.payload.count;
         dispatch(action);
     }).catch(function(err){
+        console.log("failed to init math ", err);
         dispatch({type: Auth.LOGOUT});
+        dispatch({type: Nav.GoToPath, path:"/auth"});
     })
 };

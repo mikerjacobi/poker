@@ -1,11 +1,19 @@
 package controllers
 
 import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 	"github.com/mikerjacobi/poker/models"
 	"gopkg.in/mgo.v2"
 )
+
+type CreateGameRequest struct {
+	GameName string `json:"game_name"`
+}
 
 func GetGame(c *echo.Context) error {
 	logrus.Infof("in get game")
@@ -34,36 +42,33 @@ func GetOpenGames(c *echo.Context) error {
 	return nil
 }
 
-func validateCreateGame(gameName map[string][]string) error {
-	return nil
+func validateCreateGame(cgBody io.ReadCloser) (*CreateGameRequest, error) {
+	cgBytes, err := ioutil.ReadAll(cgBody)
+	if err != nil {
+		return nil, err
+	}
+
+	cg := CreateGameRequest{}
+	err = json.Unmarshal(cgBytes, &cg)
+	if err != nil {
+		return nil, err
+	}
+	return &cg, nil
 }
 
 func CreateGame(c *echo.Context) error {
 	logrus.Infof("in create game")
-	c.Request().ParseForm()
-	err := validateCreateGame(c.Request().Form)
+	cg, err := validateCreateGame(c.Request().Body)
 	if err != nil {
-		logrus.Errorf("failed create account input validation %s", err.Error())
+		logrus.Errorf("failed create game input validation %s", err.Error())
 		c.JSON(400, Response{})
 		return nil
 	}
 
-	gameName := c.Request().Form["gamename"][0]
 	db := c.Get("db").(*mgo.Database)
-	g, err := models.LoadGame(db, "", gameName)
-	if err == nil {
-		logrus.Errorf("game name taken: %s", g.Name)
-		c.JSON(409, Response{})
-		return nil
-	} else if err != mgo.ErrNotFound && err != nil {
-		logrus.Errorf("db error in create game: %s", err.Error())
-		c.JSON(500, Response{})
-		return nil
-	}
-
-	game, err := models.CreateGame(db, gameName)
+	game, err := models.CreateGame(db, cg.GameName)
 	if err != nil {
-		logrus.Errorf("failed to create game")
+		logrus.Errorf("failed to create game: %s", err)
 		c.JSON(500, Response{})
 		return nil
 	}
