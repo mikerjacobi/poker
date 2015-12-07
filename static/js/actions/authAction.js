@@ -3,7 +3,7 @@ var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
 var Nav = require("./navAction")
 var Async = require("./asyncAction")
-var LoginCreate = require("./loginCreateAction")
+var Account = require("./accountAction")
 require("whatwg-fetch");
 
 //auth actions
@@ -84,11 +84,11 @@ exports.wsDisconnect = function(dispatch, wsConnection){
 
 exports.wsError = function(dispatch){
     dispatch({type:Async.FETCHED});
-    dispatch({type:LoginCreate.FETCHED});
+    dispatch({type:Account.FETCHED});
 }
 
 exports.Login = function(dispatch, username, password, wsConn, history){
-    dispatch({type:LoginCreate.FETCH});
+    dispatch({type:Account.FETCH});
 
     var url = Config.baseURL + "/login"
     var action = {type: exports.LOGIN};
@@ -108,19 +108,10 @@ exports.Login = function(dispatch, username, password, wsConn, history){
         },
     })
     .then(function(resp){
-        var err = "";
-        if (resp.status == 200){
-            LoginCreate.ClearForm(dispatch, true);
-            return resp.json();
-        } else if (resp.status == 400){
-            err = "bad login input";
-        } else if (resp.status == 401){
-            err = "bad login creds";
-        } else {
-            err = "login unknown";
-        }
-        LoginCreate.ClearForm(dispatch, false);
-        throw err;
+        if (resp.status != 200){
+           throw "received bad status code from login: ", resp.status;
+        } 
+        return resp.json();
     }).then(function(json){
         action.session_id = json.payload.session_id;
         dispatch(action);
@@ -134,7 +125,7 @@ exports.Login = function(dispatch, username, password, wsConn, history){
     }).catch(function(err){
         console.log(err);
     })
-    dispatch({type:LoginCreate.FETCHED});
+    dispatch({type:Account.FETCHED});
 }
 
 exports.Logout = function(dispatch, wsConn){

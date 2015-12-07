@@ -12,8 +12,6 @@ import (
 type Client struct {
 	WebSocket   *websocket.Conn
 	WebSocketID string
-	AccountID   string
-	Username    string
 }
 
 var (
@@ -67,6 +65,7 @@ func (cq CommsQueue) HandleConnect(cm CommsMessage) {
 		//already connected
 		return
 	}
+
 	cq.Clients[cm.WebSocketID] = &Client{
 		WebSocket:   cm.WebSocket,
 		WebSocketID: cm.WebSocketID,

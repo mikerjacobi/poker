@@ -13,7 +13,7 @@ var GetInitialState = require("./common").GetInitialState;
 
 //smart components
 var MathController = require("./components/mathController").MathController;
-var GameController = require("./components/gameController").GameController;
+var LobbyController = require("./components/lobbyController").LobbyController;
 var AsyncController = require("./components/asyncController").AsyncController;
 var AuthController = require("./components/authController").AuthController;
 var IndexController = require("./components/indexController").IndexController;
@@ -41,7 +41,7 @@ class App extends React.Component {
                     <h4>Flux Demo!</h4>
                     <router.Link onClick={Common.SetPath(store)} to="/">Index</router.Link> -- 
                     <router.Link onClick={Common.SetPath(store)} to="/math">Math</router.Link> -- 
-                    <router.Link onClick={Common.SetPath(store)} to="/game">Game</router.Link> -- 
+                    <router.Link onClick={Common.SetPath(store)} to="/lobby">Lobby</router.Link> -- 
                     <router.Link onClick={Common.SetPath(store)} to="/async">Async</router.Link> -- 
                     <router.Link onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
                     <Logout/>
@@ -65,7 +65,7 @@ render((
         <router.Route path="/" component={App}>
             <router.IndexRoute component={IndexController} />
             <router.Route path="math" component={MathController} onEnter={Common.RequireAuth(store)} />
-            <router.Route path="game" component={GameController} onEnter={Common.RequireAuth(store)} />
+            <router.Route path="lobby" component={LobbyController} onEnter={Common.RequireAuth(store)} />
             <router.Route path="async" component={AsyncController} />
             <router.Route path="auth" component={AuthController} />
         </router.Route> 

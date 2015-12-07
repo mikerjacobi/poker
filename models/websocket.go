@@ -13,6 +13,7 @@ type Message struct {
 	Type        string          `json:"type"`
 	WebSocketID string          `json:"-"`
 	WebSocket   *websocket.Conn `json:"-"`
+	Sender      Account         `json:"-"`
 }
 
 type ErrorMessage struct {
@@ -23,7 +24,7 @@ type ErrorMessage struct {
 type MessageHandler struct {
 	MathQueue
 	CommsQueue
-	GameQueue
+	LobbyQueue
 }
 
 func newErrorMessage(err interface{}) ErrorMessage {
@@ -45,51 +46,50 @@ func NewMessageHandler(db *mgo.Database) (MessageHandler, error) {
 		return MessageHandler{}, fmt.Errorf("failed to init math queue: %s", err.Error())
 	}
 
-	gq, err := NewGameQueue(db, &cq)
+	lq, err := NewLobbyQueue(db, &cq)
 	if err != nil {
-		return MessageHandler{}, fmt.Errorf("failed to init game queue: %s", err.Error())
+		return MessageHandler{}, fmt.Errorf("failed to init lobby queue: %s", err.Error())
 	}
 
-	mh := MessageHandler{mq, cq, gq}
+	mh := MessageHandler{mq, cq, lq}
 	return mh, nil
 }
 
-func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Conn) error {
+func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Conn, a Account) error {
 	m := Message{
 		WebSocketID: wsID,
 		WebSocket:   ws,
+		Sender:      a,
 	}
 	if err := json.Unmarshal(msg, &m); err != nil {
 		return err
 	}
 
+	logrus.Infof("%s: %+s", m.Sender.Username, m.Type)
+	//logrus.Infof("%s: %+s %+v", m.Sender.Username, m.Type, msg)
 	if StringInSlice(m.Type, MathActions) {
 		mathMessage := MathMessage{Message: m}
 		if err := json.Unmarshal(msg, &mathMessage); err != nil {
 			return err
 		}
-		logrus.Infof("%+v", mathMessage)
 		mh.MathQueue.Q <- mathMessage
 	} else if StringInSlice(m.Type, CommsActions) {
 		commsMessage := CommsMessage{Message: m}
 		if err := json.Unmarshal(msg, &commsMessage); err != nil {
 			return err
 		}
-		logrus.Infof("%+v", commsMessage)
 		mh.CommsQueue.Q <- commsMessage
-	} else if StringInSlice(m.Type, GameActions) {
-		gameMessage := GameMessage{Message: m}
-		if err := json.Unmarshal(msg, &gameMessage); err != nil {
+	} else if StringInSlice(m.Type, LobbyActions) {
+		lobbyMessage := LobbyMessage{Message: m}
+		if err := json.Unmarshal(msg, &lobbyMessage); err != nil {
 			return err
 		}
-		logrus.Infof("%+v", gameMessage)
-		mh.GameQueue.Q <- gameMessage
+		mh.LobbyQueue.Q <- lobbyMessage
 	} else {
 		err := struct {
 			InvalidAction string `json:"invalid_action"`
 		}{m.Type}
 		wsError := newErrorMessage(err)
-		logrus.Infof("%+v", wsError)
 		mh.CommsQueue.Send(wsID, wsError)
 	}
 	return nil

@@ -36,12 +36,18 @@ func HandleWebSocket(c *echo.Context) error {
 			return errors.New(e)
 		}
 
+		account, ok := c.Get("user").(models.Account)
+		if !ok {
+			logrus.Errorf("failed to get user in handle websocket")
+			continue
+		}
+
 		if err := websocket.Message.Receive(ws, &msg); err != nil {
 			//close connection gracefully
 			return c.JSON(200, Response{true, nil})
 		}
 
-		if err := mh.HandleMessage([]byte(msg), wsID, ws); err != nil {
+		if err := mh.HandleMessage([]byte(msg), wsID, ws, account); err != nil {
 			logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
 			continue
 		}

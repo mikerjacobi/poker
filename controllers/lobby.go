@@ -87,7 +87,7 @@ func JoinGame(c *echo.Context) error {
 
 	logrus.Infof("game: %s, acctid: %s", gameID, a.AccountID)
 	db := c.Get("db").(*mgo.Database)
-	err := models.JoinGame(db, gameID, a.AccountID)
+	game, err := models.JoinGame(db, gameID, a.AccountID)
 	if err == models.PlayerAlreadyJoined {
 		logrus.Errorf("player already joined in join game")
 		c.JSON(409, Response{})
@@ -97,6 +97,6 @@ func JoinGame(c *echo.Context) error {
 		c.JSON(500, Response{})
 		return nil
 	}
-	c.JSON(200, Response{Success: true})
+	c.JSON(200, Response{Success: true, Payload: game})
 	return nil
 }

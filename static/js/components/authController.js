@@ -2,32 +2,60 @@
 var React = require('react')
 var connect =  require('react-redux').connect;
 var Auth = require("../actions/authAction");
-var LoginCreate = require("../actions/loginCreateAction");
+var Account = require("../actions/accountAction");
 var Nav = require("../actions/navAction");
 
 class LoginCreateForm extends React.Component{
+    constructor(props){
+        super(props);
+        this.changeUsername = this.changeUsername.bind(this);
+        this.changePassword = this.changePassword.bind(this);
+        this.changeRepeat = this.changeRepeat.bind(this);
+    }
+    changeUsername(event){
+        this.setState({username:event.target.value});
+    }
+    changePassword(event){
+        this.setState({password:event.target.value});
+    }
+    changeRepeat(event){
+        this.setState({repeat:event.target.value});
+    }
     render(){
         var data = <div> loading... </div>;
         if (!this.props.isFetching){
+            var username = "";
+            var password = "";
+            var repeat = "";
+            if (this.state != null){
+                username = this.state.username; 
+                password = this.state.password; 
+                repeat = this.state.repeat; 
+            }
+
             data = <div>
                     <input type="text"
                         placeholder="username"
-                        value={this.props.username} 
-                        onChange={this.props.changeUsername}/>
+                        value={username} 
+                        onChange={this.changeUsername}/>
                     
-                    <br/><br/>
+                    <br/>
                     <input type="password"
                         placeholder="password"
-                        value={this.props.password} 
-                        onChange={this.props.changePassword}/>
-                    <button onClick={this.props.clickLogin}> Login </button>    
+                        value={password} 
+                        onChange={this.changePassword}/>
+                    <button onClick={this.props.login.bind(this, username, password)}> 
+                        Login 
+                    </button>    
 
-                    <br/><br/>
+                    <br/>
                     <input type="password"
                             placeholder="password repeat"
-                            value={this.props.repeat} 
-                            onChange={this.props.changeRepeat}/>
-                    <button onClick={this.props.clickCreateAccount}> Create Account </button>
+                            value={repeat} 
+                            onChange={this.changeRepeat}/>
+                    <button onClick={this.props.createAccount.bind(this, username, password, repeat)}> 
+                        Create Account 
+                    </button>
                 </div>;
         }
         return data;
@@ -37,41 +65,26 @@ class LoginCreateForm extends React.Component{
 class AuthController extends React.Component {
     constructor(props){
         super(props);
-        this.changeUsername = this.changeUsername.bind(this);
-        this.changePassword = this.changePassword.bind(this);
-        this.changeRepeat = this.changeRepeat.bind(this);
-        this.clickLogin = this.clickLogin.bind(this);
-        this.clickCreateAccount = this.clickCreateAccount.bind(this);
+        this.login = this.login.bind(this);
+        this.createAccount = this.createAccount.bind(this);
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
     }
-    changeUsername(event) {
-        var username = event.target.value;
-        LoginCreate.ChangeUsername(this.props.dispatch, username);
-    }
-    changePassword(event) {
-        var password = event.target.value;
-        LoginCreate.ChangePassword(this.props.dispatch, password);
-    }
-    changeRepeat(event) {
-        var repeat = event.target.value;
-        LoginCreate.ChangeRepeat(this.props.dispatch, repeat);
-    }
-    clickLogin() {
+    login(username, password) {
         Auth.Login(
             this.props.dispatch, 
-            this.props.username, 
-            this.props.password,
+            username, 
+            password,
             this.props.wsConnection
         );
     }
-    clickCreateAccount() {
-        LoginCreate.CreateAccount(
+    createAccount(username, password, repeat) {
+        Account.Create(
             this.props.dispatch, 
-            this.props.username, 
-            this.props.password,
-            this.props.repeat
+            username, 
+            password,
+            repeat
         );
     }
     componentWillReceiveProps(nextProps) {
@@ -82,14 +95,8 @@ class AuthController extends React.Component {
             <div>
                 <LoginCreateForm
                     isFetching={this.props.isFetching}
-                    username={this.props.username}
-                    password={this.props.password}
-                    repeat={this.props.repeat}
-                    changeUsername={this.changeUsername}
-                    changePassword={this.changePassword}
-                    changeRepeat={this.changeRepeat}
-                    clickLogin={this.clickLogin}
-                    clickCreateAccount={this.clickCreateAccount}>
+                    login={this.login}
+                    createAccount={this.createAccount}>
                 </LoginCreateForm>
             </div>
         )
@@ -98,10 +105,7 @@ class AuthController extends React.Component {
 
 var loginMapper = function(state){
     return {
-        isFetching: state.LoginCreate.isFetching,
-        username: state.LoginCreate.username,
-        password: state.LoginCreate.password,
-        repeat: state.LoginCreate.repeat,
+        isFetching: state.Account.isFetching,
         wsConnection: state.Auth.wsConnection
     };
 }
