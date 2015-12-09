@@ -14,6 +14,7 @@ var GetInitialState = require("./common").GetInitialState;
 //smart components
 var MathController = require("./components/mathController").MathController;
 var LobbyController = require("./components/lobbyController").LobbyController;
+var HoldemController = require("./components/holdemController").HoldemController;
 var AsyncController = require("./components/asyncController").AsyncController;
 var AuthController = require("./components/authController").AuthController;
 var IndexController = require("./components/indexController").IndexController;
@@ -65,7 +66,10 @@ render((
         <router.Route path="/" component={App}>
             <router.IndexRoute component={IndexController} />
             <router.Route path="math" component={MathController} onEnter={Common.RequireAuth(store)} />
-            <router.Route path="lobby" component={LobbyController} onEnter={Common.RequireAuth(store)} />
+            <router.Route path="lobby">
+                <router.IndexRoute component={LobbyController}  onEnter={Common.RequireAuth(store)}/>
+                <router.Route path="holdem/:gameid" component={HoldemController} onEnter={Common.RequireAuth(store)} />
+            </router.Route>
             <router.Route path="async" component={AsyncController} />
             <router.Route path="auth" component={AuthController} />
         </router.Route> 

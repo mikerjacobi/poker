@@ -1,6 +1,7 @@
 var Config = require("../common").Config;
 var Auth = require("./authAction");
 var Nav = require("./navAction");
+var Actions = require("./actions").Actions;
 
 //math actions
 exports.INCREMENT = 'INCREMENT'
@@ -8,6 +9,11 @@ exports.DECREMENT = 'DECREMENT'
 exports.SQUARE = 'SQUARE'
 exports.SQRT = 'SQRT'
 exports.INIT = 'MATHINIT'
+
+Actions.Register(exports.INCREMENT);
+Actions.Register(exports.DECREMENT);
+Actions.Register(exports.SQUARE);
+Actions.Register(exports.SQRT);
 
 exports.Increment = function(dispatch, ws) {
     var action = {type:exports.INCREMENT};

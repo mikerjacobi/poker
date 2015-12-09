@@ -1,6 +1,7 @@
 var Config = require("../common").Config;
 var Auth = require("./authAction");
 var Nav = require("./navAction");
+var Actions = require("./actions").Actions;
 
 //lobby actions
 exports.INIT = 'LOBBYINIT'
@@ -8,6 +9,12 @@ exports.CREATE = 'GAMECREATE'
 exports.START = 'GAMESTART'
 exports.JOIN = 'GAMEJOIN'
 exports.LEAVE = 'GAMELEAVE'
+
+Actions.Register(exports.CREATE);
+Actions.Register(exports.JOIN, function(dispatch, msg){
+    gameRoute = "/lobby/holdem/" + msg.game.game_id;
+    Nav.GoToPath(dispatch, gameRoute);
+});
 
 exports.Create = function(dispatch, ws, gameName){
     var action = {

@@ -9,7 +9,7 @@
     "fetch": "^0.3.6",
     "history": "^1.13.0",
     "jquery": "^2.1.4",
-    "react": "^0.14.1",
+    "react": "^0.14.3",
     "react-cookie": "^0.3.4",
     "react-dom": "^0.14.1",
     "react-redux": "^4.0.0",

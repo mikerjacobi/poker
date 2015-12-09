@@ -1,6 +1,7 @@
 "use strict"
 var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
+var Actions = require("./actions").Actions;
 var Nav = require("./navAction")
 var Async = require("./asyncAction")
 var Account = require("./accountAction")
@@ -12,6 +13,14 @@ exports.LOGOUT = 'LOGOUT';
 exports.WSCONNECT = 'WSCONNECT';
 exports.WSDISCONNECT = 'WSDISCONNECT';
 exports.WSERROR = 'WSERROR';
+
+Actions.Register(exports.WSCONNECT);
+Actions.Register(exports.WSDISCONNECT);
+Actions.Register(exports.WSERROR, function(dispatch, msg){
+    dispatch({type:Async.FETCHED});
+    dispatch({type:Account.FETCHED});
+    console.log("server returned ws error: ", msg);
+});
 
 exports.wsConnect = function(dispatch, currentWSConnection){
     var loggedIn = (reactCookie.load("session") || "") != "";
@@ -48,25 +57,24 @@ exports.wsConnect = function(dispatch, currentWSConnection){
     };
 
     wsConnection.onerror = function (event) {
-        exports.wsError(dispatch);
-        console.log('ws error: ' + event);
+        Actions.Call(exports.WSERROR)(dispatch, event.data);
     };
 
     wsConnection.onmessage = function(event) {
         try{
             var msg = JSON.parse(event.data);
         } catch(err){
-            console.log(event.data);
             console.log("JSON parse error: ", err);
+            console.log("failing event.data: ", event.data);
             return;
         }
 
-        if (msg.type == exports.WSERROR){
-            //handle generic errors
-            exports.wsError(dispatch);
-            console.log("server returned ws error: ", event.data);
-        } else {
-            dispatch(msg);
+        try{
+            Actions.Call(msg.type)(dispatch, msg);
+        } catch(err){
+            console.log("failed to Actions.Call: " + err);
+            console.log("failing message: ", msg);
+            return;
         }
     };
     dispatch(action);
@@ -80,11 +88,6 @@ exports.wsDisconnect = function(dispatch, wsConnection){
     wsConnection.jsend({type:exports.WSDISCONNECT});
     wsConnection.close();
     dispatch({type:exports.WSDISCONNECT});
-}
-
-exports.wsError = function(dispatch){
-    dispatch({type:Async.FETCHED});
-    dispatch({type:Account.FETCHED});
 }
 
 exports.Login = function(dispatch, username, password, wsConn, history){
