@@ -23,6 +23,14 @@ exports.Lobby = function(state, action) {
         newState.games = state.games.slice(0);
         newState.games.push(action.game);
         break;
+    case Lobby.LEAVE:
+        for (i=0; i<newState.games.length; i++){
+            if (newState.games[i].game_id == action.game.game_id){
+                newState.games[i] = action.game;
+                break;
+            }
+        }
+        break;
     case Auth.LOGIN:
         return getInitialState();
     default:

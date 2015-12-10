@@ -12,8 +12,12 @@ exports.LEAVE = 'GAMELEAVE'
 
 Actions.Register(exports.CREATE);
 Actions.Register(exports.JOIN, function(dispatch, msg){
-    gameRoute = "/lobby/holdem/" + msg.game.game_id;
+    var gameRoute = "/lobby/holdem/" + msg.game.game_id;
     Nav.GoToPath(dispatch, gameRoute);
+});
+Actions.Register(exports.LEAVE, function(dispatch, msg){
+    Lobby.Leave(dispatch, msg);
+    Nav.GoToPath(dispatch, "/lobby");
 });
 
 exports.Create = function(dispatch, ws, gameName){
@@ -26,6 +30,13 @@ exports.Create = function(dispatch, ws, gameName){
 exports.Join = function(dispatch, ws, gameID){
     var action = {
         type:exports.JOIN,
+        game: {game_id: gameID}
+    };
+    ws.jsend(action);
+};
+exports.Leave = function(dispatch, ws, gameID){
+    var action = {
+        type:exports.LEAVE,
         game: {game_id: gameID}
     };
     ws.jsend(action);

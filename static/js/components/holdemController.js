@@ -3,11 +3,18 @@
 var React = require("react");
 var connect = require('react-redux').connect;
 var Holdem = require("../actions/holdemAction");
+var Lobby = require("../actions/lobbyAction");
 var Auth = require("../actions/authAction");
 
 class HoldemMenu extends React.Component {
     render() {
-        return(<div> MENU: {this.props.gameID} </div>);
+        return(<div> 
+                MENU: {this.props.gameID}  
+                <button onClick={this.props.leaveGame}>
+                    Leave Game
+                </button>
+            </div>
+        );
     };
 };
 
@@ -20,6 +27,7 @@ class HoldemTable extends React.Component {
 class HoldemController extends React.Component {
     constructor(props){
         super(props);
+        this.leaveGame = this.leaveGame.bind(this);
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
@@ -28,13 +36,13 @@ class HoldemController extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
     }
-    /*joinGame(gameID){
-        Lobby.Join(
+    leaveGame(){
+        Lobby.Leave(
             this.props.dispatch, 
             this.props.wsConnection,
-            gameID
+            this.props.params.gameid
         );    
-    }*/
+    }
     render() {
         if (!this.props.initialized){
             return(<div> loading... </div>);
@@ -42,8 +50,16 @@ class HoldemController extends React.Component {
         var g = this.props.game;
         return (
         <div>
-            <HoldemMenu gameName={g.gameName} gameID={g.gameID}/>
-            <HoldemTable gameName={g.gameName} gameID={g.gameID}/>
+            <HoldemMenu 
+                gameName={g.gameName} 
+                gameID={g.gameID}
+                leaveGame={this.leaveGame}
+            />
+
+            <HoldemTable 
+                gameName={g.gameName} 
+                gameID={g.gameID}
+            />
         </div>);
     }
 };
