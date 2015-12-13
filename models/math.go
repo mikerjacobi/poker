@@ -35,20 +35,20 @@ type MathQueue struct {
 	Count int
 	DB    *mgo.Database
 	Q     chan MathMessage
-	CQ    *CommsQueue
+	*Comms
 }
 
-func NewMathQueue(db *mgo.Database, cq *CommsQueue) (MathQueue, error) {
+func NewMathQueue(db *mgo.Database, c *Comms) (MathQueue, error) {
 	mq := MathQueue{
-		DB: db,
-		CQ: cq,
+		DB:    db,
+		Comms: c,
 	}
 
-	c, err := LoadMathCount(db)
+	counter, err := LoadMathCount(db)
 	if err != nil {
 		return mq, err
 	}
-	mq.Count = c.Count
+	mq.Count = counter.Count
 	mq.Q = make(chan MathMessage)
 	go mq.ReadMessages()
 	return mq, nil
@@ -97,7 +97,7 @@ func (mq MathQueue) HandleIncrement() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.CQ.SendAll(m)
+	return mq.SendAll(m)
 }
 func (mq MathQueue) HandleDecrement() error {
 	c, err := LoadMathCount(mq.DB)
@@ -112,7 +112,7 @@ func (mq MathQueue) HandleDecrement() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.CQ.SendAll(m)
+	return mq.SendAll(m)
 }
 func (mq MathQueue) HandleSquare() error {
 	c, err := LoadMathCount(mq.DB)
@@ -127,7 +127,7 @@ func (mq MathQueue) HandleSquare() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.CQ.SendAll(m)
+	return mq.SendAll(m)
 }
 func (mq MathQueue) HandleSqrt() error {
 	c, err := LoadMathCount(mq.DB)
@@ -142,7 +142,7 @@ func (mq MathQueue) HandleSqrt() error {
 		Message: Message{Type: Increment},
 		Counter: c,
 	}
-	return mq.CQ.SendAll(m)
+	return mq.SendAll(m)
 }
 
 func checkBounds(count int) int {

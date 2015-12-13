@@ -68,7 +68,7 @@ render((
             <router.Route path="math" component={MathController} onEnter={Common.RequireAuth(store)} />
             <router.Route path="lobby">
                 <router.IndexRoute component={LobbyController}  onEnter={Common.RequireAuth(store)}/>
-                <router.Route path="holdem/:gameid" component={HoldemController} onEnter={Common.RequireAuth(store)} />
+                <router.Route path="/holdem/:gameid" component={HoldemController} onEnter={Common.RequireAuth(store)} />
             </router.Route>
             <router.Route path="async" component={AsyncController} />
             <router.Route path="auth" component={AuthController} />

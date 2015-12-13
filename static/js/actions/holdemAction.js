@@ -1,6 +1,7 @@
 var Config = require("../common").Config;
 var Auth = require("./authAction");
 var Nav = require("./navAction");
+var Actions = require("./actions").Actions;
 
 //holdem actions
 exports.INIT = 'HOLDEMINIT'

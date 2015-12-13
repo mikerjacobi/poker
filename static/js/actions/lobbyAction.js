@@ -12,32 +12,33 @@ exports.LEAVE = 'GAMELEAVE'
 
 Actions.Register(exports.CREATE);
 Actions.Register(exports.JOIN, function(dispatch, msg){
-    var gameRoute = "/lobby/holdem/" + msg.game.game_id;
+    var gameRoute = "/holdem/" + msg.game.gameID;
     Nav.GoToPath(dispatch, gameRoute);
+    dispatch(msg);
 });
 Actions.Register(exports.LEAVE, function(dispatch, msg){
-    Lobby.Leave(dispatch, msg);
     Nav.GoToPath(dispatch, "/lobby");
+    dispatch(msg);
 });
-
+        
 exports.Create = function(dispatch, ws, gameName){
     var action = {
         type:exports.CREATE,
-        game: {game_name: gameName}
+        game: {gameName: gameName}
     };
     ws.jsend(action);
 };
 exports.Join = function(dispatch, ws, gameID){
     var action = {
         type:exports.JOIN,
-        game: {game_id: gameID}
+        game: {gameID: gameID}
     };
     ws.jsend(action);
 };
 exports.Leave = function(dispatch, ws, gameID){
     var action = {
         type:exports.LEAVE,
-        game: {game_id: gameID}
+        game: {gameID: gameID}
     };
     ws.jsend(action);
 };
@@ -53,9 +54,14 @@ exports.Initialize = function(dispatch, initialized){
         }
         return resp.json();
     }).then(function(json){
+        var games = {};
+        for (var i=0; i<json.payload.length; i++){
+            var g = json.payload[i];
+            games[g.gameID] = g;
+        }
         var action = {
             type: exports.INIT,
-            games: json.payload
+            games: games
         };
         dispatch(action);
     }).catch(function(err){

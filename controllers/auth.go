@@ -72,7 +72,7 @@ func Login(c *echo.Context) error {
 	}
 
 	resp := struct {
-		SessionID string `json:"session_id"`
+		SessionID string `json:"sessionID"`
 	}{sessionID}
 
 	c.JSON(200, Response{

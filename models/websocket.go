@@ -22,9 +22,11 @@ type ErrorMessage struct {
 }
 
 type MessageHandler struct {
+	Comms
 	MathQueue
-	CommsQueue
+	ConnectionQueue
 	LobbyQueue
+	HoldemQueue
 }
 
 func newErrorMessage(err interface{}) ErrorMessage {
@@ -36,22 +38,29 @@ func newErrorMessage(err interface{}) ErrorMessage {
 
 func NewMessageHandler(db *mgo.Database) (MessageHandler, error) {
 
-	cq, err := NewCommsQueue(db)
+	comms := newComms(db)
+
+	cq, err := NewConnectionQueue(db, &comms)
 	if err != nil {
-		return MessageHandler{}, fmt.Errorf("failed to init comms queue: %s", err.Error())
+		return MessageHandler{}, fmt.Errorf("failed to init connection queue: %s", err.Error())
 	}
 
-	mq, err := NewMathQueue(db, &cq)
+	mq, err := NewMathQueue(db, &comms)
 	if err != nil {
 		return MessageHandler{}, fmt.Errorf("failed to init math queue: %s", err.Error())
 	}
 
-	lq, err := NewLobbyQueue(db, &cq)
+	lq, err := NewLobbyQueue(db, &comms)
 	if err != nil {
 		return MessageHandler{}, fmt.Errorf("failed to init lobby queue: %s", err.Error())
 	}
 
-	mh := MessageHandler{mq, cq, lq}
+	hq, err := NewHoldemQueue(db, &comms)
+	if err != nil {
+		return MessageHandler{}, fmt.Errorf("failed to init holdem queue: %s", err.Error())
+	}
+
+	mh := MessageHandler{comms, mq, cq, lq, hq}
 	return mh, nil
 }
 
@@ -73,24 +82,30 @@ func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Co
 			return err
 		}
 		mh.MathQueue.Q <- mathMessage
-	} else if StringInSlice(m.Type, CommsActions) {
-		commsMessage := CommsMessage{Message: m}
-		if err := json.Unmarshal(msg, &commsMessage); err != nil {
+	} else if StringInSlice(m.Type, ConnectionActions) {
+		connectionMessage := ConnectionMessage{Message: m}
+		if err := json.Unmarshal(msg, &connectionMessage); err != nil {
 			return err
 		}
-		mh.CommsQueue.Q <- commsMessage
+		mh.ConnectionQueue.Q <- connectionMessage
 	} else if StringInSlice(m.Type, LobbyActions) {
 		lobbyMessage := LobbyMessage{Message: m}
 		if err := json.Unmarshal(msg, &lobbyMessage); err != nil {
 			return err
 		}
 		mh.LobbyQueue.Q <- lobbyMessage
+	} else if StringInSlice(m.Type, HoldemActions) {
+		holdemMessage := HoldemMessage{Message: m}
+		if err := json.Unmarshal(msg, &holdemMessage); err != nil {
+			return err
+		}
+		mh.HoldemQueue.Q <- holdemMessage
 	} else {
 		err := struct {
 			InvalidAction string `json:"invalid_action"`
 		}{m.Type}
 		wsError := newErrorMessage(err)
-		mh.CommsQueue.Send(wsID, wsError)
+		mh.ConnectionQueue.Send(wsID, wsError)
 	}
 	return nil
 }

@@ -116,7 +116,7 @@ exports.Login = function(dispatch, username, password, wsConn, history){
         } 
         return resp.json();
     }).then(function(json){
-        action.session_id = json.payload.session_id;
+        action.sessionID = json.payload.sessionID;
         dispatch(action);
 
         //if we create a new ws, gonextpath

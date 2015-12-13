@@ -11,11 +11,11 @@ import (
 )
 
 type Account struct {
-	AccountID string `json:"-" bson:"account_id"`
+	AccountID string `json:"-" bson:"accountID"`
 	Username  string `json:"username" bson:"username"`
 	Password  string `json:"-" bson:"-"`
 	Hashword  string `json:"-" bson:"password"`
-	SessionID string `json:"-" bson:"session_id"`
+	SessionID string `json:"-" bson:"sessionID"`
 }
 
 var (
@@ -55,7 +55,7 @@ func LoadAccount(db *mgo.Database, username string) (Account, error) {
 func CheckSession(db *mgo.Database, sessionID string) (Account, error) {
 	accounts := db.C("accounts")
 	a := Account{}
-	query := bson.M{"session_id": sessionID}
+	query := bson.M{"sessionID": sessionID}
 	err := accounts.Find(query).One(&a)
 	if err != nil {
 		logrus.Error(err)
@@ -67,8 +67,8 @@ func CheckSession(db *mgo.Database, sessionID string) (Account, error) {
 func (a Account) NewSession(db *mgo.Database) (string, error) {
 	accounts := db.C("accounts")
 	sessionID := uuid.New()
-	query := bson.M{"account_id": a.AccountID}
-	update := bson.M{"$set": bson.M{"session_id": sessionID}}
+	query := bson.M{"accountID": a.AccountID}
+	update := bson.M{"$set": bson.M{"sessionID": sessionID}}
 	err := accounts.Update(query, update)
 	if err != nil {
 		return "", err
@@ -78,8 +78,8 @@ func (a Account) NewSession(db *mgo.Database) (string, error) {
 
 func (a Account) ClearSession(db *mgo.Database) error {
 	accounts := db.C("accounts")
-	query := bson.M{"account_id": a.AccountID}
-	update := bson.M{"$unset": bson.M{"session_id": ""}}
+	query := bson.M{"accountID": a.AccountID}
+	update := bson.M{"$unset": bson.M{"sessionID": ""}}
 	err := accounts.Update(query, update)
 	if err != nil {
 		return err

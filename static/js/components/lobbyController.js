@@ -37,8 +37,8 @@ class JoinGameListing extends React.Component {
         return(
             <div>
                 <button 
-                    onClick={this.props.joinGame.bind(this, this.props.game.game_id)}>
-                    Join Game: {this.props.game.game_name}
+                    onClick={this.props.joinGame.bind(this, this.props.game.gameID)}>
+                    Join Game: {this.props.game.gameName}
                 </button>
             </div>
         )};
@@ -47,12 +47,15 @@ class JoinGameListing extends React.Component {
 class GameList extends React.Component {
     render() {
         var games = [];
-        for (var i=0; i < this.props.games.length; i++) {
+        var keys = Object.keys(this.props.games);
+        for (var i=0; i < keys.length; i++) {
+            var key = keys[i]
             games.push(
                 <JoinGameListing
-                    key={this.props.games[i].game_id}
-                    game={this.props.games[i]}
-                    joinGame={this.props.joinGame}>
+                    key={this.props.games[key].gameID}
+                    game={this.props.games[key]}
+                    joinGame={this.props.joinGame}
+                    players={this.props.games[key].players}>
                 </JoinGameListing>
             );
         }
@@ -90,13 +93,14 @@ class LobbyController extends React.Component {
     render() {
         var data = <div> loading... </div>;
         if (this.props.initialized){
+            var games ={games:this.props.games};
             data = <div>
                 <CreateGameForm gameName={""} createGame={this.createGame}/>
         
                 <br/>
 
                 <GameList 
-                    games={this.props.games}
+                    {...games}
                     joinGame={this.joinGame}>
                 </GameList>
             </div>;
@@ -109,8 +113,6 @@ var dataMapper = function(state){
     return {
         initialized: state.Lobby.initialized,
         games: state.Lobby.games,
-        //gameFormFetching: state.GameForm.isFetching,
-        createGameName: state.Lobby.createGameName,
         wsConnection: state.Auth.wsConnection
     };
 }

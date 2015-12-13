@@ -12,99 +12,72 @@ import (
 type Client struct {
 	WebSocket   *websocket.Conn
 	WebSocketID string
+	Account
 }
 
-var (
-	WSConnect    = "WSCONNECT"
-	WSDisconnect = "WSDISCONNECT"
-	WSError      = "WSERROR"
-)
-
-var CommsActions = []string{
-	WSConnect,
-	WSDisconnect,
-}
-
-type CommsMessage struct {
-	Message
-}
-
-type CommsQueue struct {
+type Comms struct {
 	DB      *mgo.Database
-	Q       chan CommsMessage
 	Clients map[string]*Client //websocket id = Client
 }
 
-func NewCommsQueue(db *mgo.Database) (CommsQueue, error) {
-	cq := CommsQueue{
-		DB:      db,
-		Clients: map[string]*Client{},
-	}
-
-	cq.Q = make(chan CommsMessage)
-	go cq.ReadMessages()
-	return cq, nil
+func newComms(db *mgo.Database) Comms {
+	c := Comms{}
+	c.DB = db
+	c.Clients = make(map[string]*Client)
+	return c
 }
 
-func (cq CommsQueue) ReadMessages() {
-	for {
-		commsMessage := <-cq.Q
-		switch commsMessage.Type {
-		case WSConnect:
-			cq.HandleConnect(commsMessage)
-		case WSDisconnect:
-			cq.HandleDisconnect(cq.Clients[commsMessage.WebSocketID])
-		default:
-			continue
-		}
-	}
-}
-
-func (cq CommsQueue) HandleConnect(cm CommsMessage) {
-	if cq.Clients[cm.WebSocketID] != nil {
+func (c Comms) SetClient(m Message) {
+	if c.Clients[m.WebSocketID] != nil {
 		//already connected
 		return
 	}
-
-	cq.Clients[cm.WebSocketID] = &Client{
-		WebSocket:   cm.WebSocket,
-		WebSocketID: cm.WebSocketID,
+	c.Clients[m.WebSocketID] = &Client{
+		WebSocket:   m.WebSocket,
+		WebSocketID: m.WebSocketID,
+		Account:     m.Sender,
 	}
 }
-func (cq CommsQueue) HandleDisconnect(client *Client) {
-	delete(cq.Clients, client.WebSocketID)
-	client.WebSocket.Close()
+
+func (c Comms) DeleteClient(wsID string) {
+	if c.Clients[wsID] == nil {
+		//doesn't exist, nothing to delete
+		return
+	}
+
+	//close websocket
+	c.Clients[wsID].WebSocket.Close()
+	delete(c.Clients, wsID)
 }
 
-func (cq CommsQueue) Send(wsID string, msg interface{}) error {
+func (c Comms) Send(wsID string, msg interface{}) error {
 	msgJSON, err := json.Marshal(msg)
 	if err != nil {
-		return fmt.Errorf("failed to jsonmarshal CommsQueue.Send: %s", err.Error())
+		return fmt.Errorf("failed to jsonmarshal Comms.Send: %s", err.Error())
 	}
 
-	client := cq.Clients[wsID]
+	client := c.Clients[wsID]
 	if client == nil {
-		return fmt.Errorf("unknown websocket id in CommsQueue.Send: %s", wsID)
+		return fmt.Errorf("unknown websocket id in Comms.Send: %s", wsID)
 	}
 
 	if err := websocket.Message.Send(client.WebSocket, string(msgJSON)); err != nil {
 		logrus.Warnf("discarding dead ws conn from send: %s", client.WebSocketID)
-		cq.HandleDisconnect(client)
+		c.DeleteClient(wsID)
 	}
 	return nil
 }
 
-func (cq CommsQueue) SendAll(msg interface{}) error {
+func (c Comms) SendAll(msg interface{}) error {
 	msgJSON, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to sendall: %s", err.Error())
 	}
 
-	for _, client := range cq.Clients {
+	for _, client := range c.Clients {
 		if err := websocket.Message.Send(client.WebSocket, string(msgJSON)); err != nil {
 			logrus.Warnf("discarding dead ws conn from sendall: %s", client.WebSocketID)
-			cq.HandleDisconnect(client)
-			continue
+			c.DeleteClient(client.WebSocketID)
 		}
 	}
 	return nil

@@ -3,7 +3,7 @@ var Auth = require("../actions/authAction");
 
 var getInitialState = function(){
     return {
-        games: [],
+        games: {},
         initialized: false
     };
 };
@@ -19,17 +19,20 @@ exports.Lobby = function(state, action) {
         newState.initialized = true;
         newState.games = action.games;
         break;
+    case Lobby.JOIN:
+        var newGames = Object.assign({}, state.games, {});
+        newGames[action.game.gameID] = action.game;
+        newState.games = newGames;
+        break;
     case Lobby.CREATE:
-        newState.games = state.games.slice(0);
-        newState.games.push(action.game);
+        var newGames = Object.assign({}, state.games, {});
+        newGames[action.game.gameID] = action.game;
+        newState.games = newGames;
         break;
     case Lobby.LEAVE:
-        for (i=0; i<newState.games.length; i++){
-            if (newState.games[i].game_id == action.game.game_id){
-                newState.games[i] = action.game;
-                break;
-            }
-        }
+        var newGames = Object.assign({}, state.games, {});
+        newGames[action.game.gameID] = action.game;
+        newState.games = newGames;
         break;
     case Auth.LOGIN:
         return getInitialState();
@@ -37,6 +40,5 @@ exports.Lobby = function(state, action) {
         return state;
     }
 
-    nextState = Object.assign({}, state, newState);
-    return nextState;
+    return Object.assign({}, state, newState);
 };

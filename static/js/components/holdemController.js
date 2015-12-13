@@ -9,7 +9,6 @@ var Auth = require("../actions/authAction");
 class HoldemMenu extends React.Component {
     render() {
         return(<div> 
-                MENU: {this.props.gameID}  
                 <button onClick={this.props.leaveGame}>
                     Leave Game
                 </button>

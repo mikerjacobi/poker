@@ -1,4 +1,5 @@
 var Holdem = require("../actions/holdemAction");
+var Lobby = require("../actions/lobbyAction");
 var Auth = require("../actions/authAction");
 
 var getInitialState = function(){
@@ -22,11 +23,15 @@ exports.Holdem = function(state, action) {
     case Holdem.INIT:
         newState.initialized = true;
         newState.game = {
-            gameID: action.game.game_id,
-            gameName: action.game.game_name,
+            gameID: action.game.gameID,
+            gameName: action.game.gameName,
             players: action.game.players
         };
         break;
+    case Lobby.JOIN:
+        return getInitialState();
+    case Lobby.LEAVE:
+        return getInitialState();
     case Auth.LOGIN:
         return getInitialState();
     default:

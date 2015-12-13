@@ -12,13 +12,12 @@ import (
 )
 
 type CreateGameRequest struct {
-	GameName string `json:"game_name"`
+	GameName string `json:"gameName"`
 }
 
 func GetGame(c *echo.Context) error {
-	logrus.Infof("in get game")
 	db := c.Get("db").(*mgo.Database)
-	gameID := c.Param("game_id")
+	gameID := c.Param("gameID")
 	game, err := models.LoadGame(db, gameID, "")
 	if err != nil {
 		logrus.Errorf("failed to get game: %s", err.Error())
@@ -30,7 +29,6 @@ func GetGame(c *echo.Context) error {
 }
 
 func GetOpenGames(c *echo.Context) error {
-	logrus.Infof("in get open games")
 	db := c.Get("db").(*mgo.Database)
 	games, err := models.LoadOpenGames(db)
 	if err != nil {
@@ -57,7 +55,6 @@ func validateCreateGame(cgBody io.ReadCloser) (*CreateGameRequest, error) {
 }
 
 func CreateGame(c *echo.Context) error {
-	logrus.Infof("in create game")
 	cg, err := validateCreateGame(c.Request().Body)
 	if err != nil {
 		logrus.Errorf("failed create game input validation %s", err.Error())
@@ -77,7 +74,7 @@ func CreateGame(c *echo.Context) error {
 }
 
 func JoinGame(c *echo.Context) error {
-	gameID := c.Param("game_id")
+	gameID := c.Param("gameID")
 	a, ok := c.Get("user").(models.Account)
 	if !ok {
 		logrus.Errorf("failed to get user in create game")

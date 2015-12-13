@@ -24,8 +24,8 @@ var (
 )
 
 type Game struct {
-	ID      string   `json:"game_id" bson:"game_id"`
-	Name    string   `json:"game_name" bson:"game_name"`
+	ID      string   `json:"gameID" bson:"gameID"`
+	Name    string   `json:"gameName" bson:"gameName"`
 	State   string   `json:"state" bson:"state"`
 	Players []string `json:"players" bson:"players"`
 }
@@ -38,13 +38,13 @@ type LobbyMessage struct {
 type LobbyQueue struct {
 	DB *mgo.Database
 	Q  chan LobbyMessage
-	CQ *CommsQueue
+	*Comms
 }
 
-func NewLobbyQueue(db *mgo.Database, cq *CommsQueue) (LobbyQueue, error) {
+func NewLobbyQueue(db *mgo.Database, comms *Comms) (LobbyQueue, error) {
 	lq := LobbyQueue{
-		DB: db,
-		CQ: cq,
+		DB:    db,
+		Comms: comms,
 	}
 
 	lq.Q = make(chan LobbyMessage)
@@ -62,7 +62,7 @@ func (lq LobbyQueue) ReadMessages() {
 				logrus.Errorf("failed to create game: %s", err)
 				continue
 			}
-			lq.CQ.SendAll(LobbyMessage{
+			lq.SendAll(LobbyMessage{
 				Message: lobbyMessage.Message,
 				Game:    g,
 			})
@@ -75,12 +75,21 @@ func (lq LobbyQueue) ReadMessages() {
 				logrus.Errorf("failed to join game: %s", err)
 				continue
 			}
-			lq.CQ.SendAll(LobbyMessage{
+			lq.SendAll(LobbyMessage{
 				Message: lobbyMessage.Message,
 				Game:    game,
 			})
 		case GameLeave:
-			logrus.Infof("game leave in lobbyQ readmsgs")
+			accountID := lobbyMessage.Message.Sender.AccountID
+			game, err := LeaveGame(lq.DB, lobbyMessage.Game.ID, accountID)
+			if err != nil {
+				logrus.Errorf("failed to leave game: %s", err)
+				continue
+			}
+			lq.SendAll(LobbyMessage{
+				Message: lobbyMessage.Message,
+				Game:    game,
+			})
 		default:
 			continue
 		}
@@ -92,9 +101,9 @@ func LoadGame(db *mgo.Database, gameID, gameName string) (Game, error) {
 	game := Game{}
 	var query bson.M
 	if gameID != "" {
-		query = bson.M{"game_id": gameID}
+		query = bson.M{"gameID": gameID}
 	} else if gameName != "" {
-		query = bson.M{"game_name": gameName}
+		query = bson.M{"gameName": gameName}
 	} else {
 		return game, errors.New("gameid or gamename must be provided")
 	}
@@ -146,7 +155,7 @@ func CreateGame(db *mgo.Database, name string) (Game, error) {
 func JoinGame(db *mgo.Database, gameID string, accountID string) (Game, error) {
 	games := db.C("games")
 	g := Game{}
-	query := bson.M{"game_id": gameID}
+	query := bson.M{"gameID": gameID}
 	if err := games.Find(query).One(&g); err != nil {
 		return Game{}, err
 	}
@@ -156,6 +165,25 @@ func JoinGame(db *mgo.Database, gameID string, accountID string) (Game, error) {
 		}
 	}
 	g.Players = append(g.Players, accountID)
+	if err := games.Update(query, g); err != nil {
+		return Game{}, err
+	}
+	return g, nil
+}
+
+func LeaveGame(db *mgo.Database, gameID string, accountID string) (Game, error) {
+	games := db.C("games")
+	g := Game{}
+	query := bson.M{"gameID": gameID}
+	if err := games.Find(query).One(&g); err != nil {
+		return Game{}, err
+	}
+	for i := range g.Players {
+		if g.Players[i] == accountID {
+			g.Players = append(g.Players[0:i], g.Players[i+1:]...)
+			break
+		}
+	}
 	if err := games.Update(query, g); err != nil {
 		return Game{}, err
 	}

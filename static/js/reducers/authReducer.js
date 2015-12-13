@@ -22,7 +22,7 @@ exports.Auth = function(state, action){
 
     switch (action.type){
     case Auth.LOGIN:
-        reactCookie.save('session', action.session_id);
+        reactCookie.save('session', action.sessionID);
         newState.loggedIn = true;
         break;
     case Auth.LOGOUT:
