@@ -21,10 +21,10 @@ Actions.Register(exports.LEAVE, function(dispatch, msg){
     dispatch(msg);
 });
         
-exports.Create = function(dispatch, ws, gameName){
+exports.Create = function(dispatch, ws, gameName, gameType){
     var action = {
         type:exports.CREATE,
-        game: {gameName: gameName}
+        game: {gameName: gameName, gameType: gameType}
     };
     ws.jsend(action);
 };

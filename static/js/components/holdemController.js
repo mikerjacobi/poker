@@ -8,7 +8,14 @@ var Auth = require("../actions/authAction");
 
 class HoldemMenu extends React.Component {
     render() {
+        var players = [];
+        for (var i=0; i<this.props.game.players.length; i++){
+            players.push(this.props.game.players[i].name);
+        }
         return(<div> 
+                {this.props.game.gameName} -
+                {this.props.game.gameType} - 
+                {players.join(", ")} - 
                 <button onClick={this.props.leaveGame}>
                     Leave Game
                 </button>
@@ -19,7 +26,7 @@ class HoldemMenu extends React.Component {
 
 class HoldemTable extends React.Component {
     render() {
-        return(<div> TABLE: {this.props.gameName} </div>);
+        return(<div> game place holder </div>);
     };
 };
 
@@ -46,20 +53,19 @@ class HoldemController extends React.Component {
         if (!this.props.initialized){
             return(<div> loading... </div>);
         }
-        var g = this.props.game;
+        var game = {game:this.props.game};
         return (
-        <div>
-            <HoldemMenu 
-                gameName={g.gameName} 
-                gameID={g.gameID}
-                leaveGame={this.leaveGame}
-            />
+            <div>
+                <HoldemMenu 
+                    {...game}
+                    leaveGame={this.leaveGame}
+                />
 
-            <HoldemTable 
-                gameName={g.gameName} 
-                gameID={g.gameID}
-            />
-        </div>);
+                <HoldemTable 
+                    {...game}
+                />
+            </div>
+        );
     }
 };
 

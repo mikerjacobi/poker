@@ -9,58 +9,87 @@ class CreateGameForm extends React.Component {
     constructor(props){
         super(props);
         this.changeGameName = this.changeGameName.bind(this);
+        this.changeGameType = this.changeGameType.bind(this);
+        this.state = {gameType: "", gameName: ""};
     }
     changeGameName(event){
         this.setState({gameName:event.target.value});
     }
+    changeGameType(event){
+        this.setState({gameType: event.target.value});
+    }
     render() {
-        var gameName = "";
-        if (this.state != null){
-            gameName = this.state.gameName; 
-        }
+        var gameName = this.state.gameName; 
+        var gameType = this.state.gameType;
             
         return (
             <div> 
-                <button onClick={this.props.createGame.bind(this, gameName)}>
-                    Create Game
-                </button>
-                <input type="text"
+                <div className="ui input"><input 
+                    type="text"
                     placeholder="gamename"
                     value={gameName}
-                    onChange={this.changeGameName}/>
-            </div>);
+                    onChange={this.changeGameName}/> </div>
+                <select className="ui selection dropdown" onChange={this.changeGameType}>
+                    <option value="">Game Type</option>
+                    <option value="holdem">Hold Em</option>
+                    <option value="highcard">High Card</option>
+                </select>
+                <button 
+                    className="ui primary button"
+                    onClick={this.props.createGame.bind(this, gameName, gameType)}>
+                    Create Game
+                </button>
+            </div>
+        );
     }
 };
 
 class JoinGameListing extends React.Component {
     render() {
+        var players = [];
+        for (var i=0; i<this.props.game.players.length; i++){
+            players.push(this.props.game.players[i].name); 
+        }
         return(
-            <div>
-                <button 
-                    onClick={this.props.joinGame.bind(this, this.props.game.gameID)}>
-                    Join Game: {this.props.game.gameName}
-                </button>
-            </div>
-        )};
+            <tr onClick={this.props.joinGame.bind(this, this.props.game.gameID)}>
+                <td>{this.props.game.gameName}</td>
+                <td>{this.props.game.gameType}</td>
+                <td>{players.join(", ")}</td>
+            </tr>
+        );
+    }
 };
 
 class GameList extends React.Component {
     render() {
-        var games = [];
+        var gameRows = [];
         var keys = Object.keys(this.props.games);
         for (var i=0; i < keys.length; i++) {
             var key = keys[i]
-            games.push(
+            gameRows.push(
                 <JoinGameListing
                     key={this.props.games[key].gameID}
                     game={this.props.games[key]}
-                    joinGame={this.props.joinGame}
-                    players={this.props.games[key].players}>
+                    joinGame={this.props.joinGame}>
                 </JoinGameListing>
             );
         }
-        return(<div> {games} </div>);
-    };
+
+        return(
+            <table className="ui inverted selectable single line table">
+                <thead>
+                    <tr>
+                        <th>Game Name</th>
+                        <th>Type</th>
+                        <th>Players</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {gameRows}
+                </tbody>
+            </table>
+        );
+    }
 };
 
 class LobbyController extends React.Component {
@@ -76,11 +105,12 @@ class LobbyController extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
     }
-    createGame(createGameName){
+    createGame(createGameName, createGameType){
         Lobby.Create(
             this.props.dispatch, 
             this.props.wsConnection,
-            createGameName
+            createGameName,
+            createGameType
         );    
     }
     joinGame(gameID){

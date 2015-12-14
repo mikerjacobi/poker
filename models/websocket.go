@@ -75,7 +75,7 @@ func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Co
 	}
 
 	logrus.Infof("%s: %+s", m.Sender.Username, m.Type)
-	//logrus.Infof("%s: %+s %+v", m.Sender.Username, m.Type, msg)
+	//logrus.Infof("%s: %+s %+v", m.Sender.Username, m.Type, string(msg))
 	if StringInSlice(m.Type, MathActions) {
 		mathMessage := MathMessage{Message: m}
 		if err := json.Unmarshal(msg, &mathMessage); err != nil {

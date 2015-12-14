@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/pborman/uuid"
@@ -18,16 +19,23 @@ var (
 	GameJoin     = "GAMEJOIN"
 	GameLeave    = "GAMELEAVE"
 	LobbyActions = []string{GameCreate, GameStart, GameJoin, GameLeave}
+	GameTypes    []string
 
 	//errors
 	PlayerAlreadyJoined = errors.New("player already joined")
 )
 
+type GamePlayer struct {
+	AccountID string `json:"accountID" bson:"accountID"`
+	Name      string `json:"name" bson:"name"`
+}
+
 type Game struct {
-	ID      string   `json:"gameID" bson:"gameID"`
-	Name    string   `json:"gameName" bson:"gameName"`
-	State   string   `json:"state" bson:"state"`
-	Players []string `json:"players" bson:"players"`
+	ID       string       `json:"gameID" bson:"gameID"`
+	Name     string       `json:"gameName" bson:"gameName"`
+	State    string       `json:"state" bson:"state"`
+	Players  []GamePlayer `json:"players" bson:"players"`
+	GameType string       `json:"gameType" bson:"gameType"`
 }
 
 type LobbyMessage struct {
@@ -42,6 +50,7 @@ type LobbyQueue struct {
 }
 
 func NewLobbyQueue(db *mgo.Database, comms *Comms) (LobbyQueue, error) {
+	GameTypes = strings.Split(viper.GetString("game_types"), ",")
 	lq := LobbyQueue{
 		DB:    db,
 		Comms: comms,
@@ -57,7 +66,7 @@ func (lq LobbyQueue) ReadMessages() {
 		lobbyMessage := <-lq.Q
 		switch lobbyMessage.Type {
 		case GameCreate:
-			g, err := CreateGame(lq.DB, lobbyMessage.Game.Name)
+			g, err := CreateGame(lq.DB, lobbyMessage.Game.Name, lobbyMessage.Game.GameType)
 			if err != nil {
 				logrus.Errorf("failed to create game: %s", err)
 				continue
@@ -69,8 +78,7 @@ func (lq LobbyQueue) ReadMessages() {
 		case GameStart:
 			logrus.Infof("game start in lobbyQ readmsgs")
 		case GameJoin:
-			accountID := lobbyMessage.Message.Sender.AccountID
-			game, err := JoinGame(lq.DB, lobbyMessage.Game.ID, accountID)
+			game, err := JoinGame(lq.DB, lobbyMessage.Game.ID, lobbyMessage.Message.Sender)
 			if err != nil {
 				logrus.Errorf("failed to join game: %s", err)
 				continue
@@ -122,11 +130,15 @@ func LoadOpenGames(db *mgo.Database) ([]Game, error) {
 	}
 	return games, nil
 }
-func CreateGame(db *mgo.Database, name string) (Game, error) {
+func CreateGame(db *mgo.Database, name, gameType string) (Game, error) {
 	games := db.C("games")
 
 	if name == "" {
 		return Game{}, errors.New("gamename cannot be empty")
+	}
+
+	if !StringInSlice(gameType, GameTypes) {
+		return Game{}, fmt.Errorf("invalid gametype: %s", gameType)
 	}
 
 	openGames, err := LoadOpenGames(db)
@@ -145,14 +157,14 @@ func CreateGame(db *mgo.Database, name string) (Game, error) {
 	}
 
 	gameID := uuid.New()
-	g := Game{gameID, name, "open", []string{}}
+	g := Game{gameID, name, "open", []GamePlayer{}, gameType}
 	if err := games.Insert(g); err != nil {
 		return Game{}, fmt.Errorf("failed to insert: %s", err)
 	}
 	return g, nil
 }
 
-func JoinGame(db *mgo.Database, gameID string, accountID string) (Game, error) {
+func JoinGame(db *mgo.Database, gameID string, account Account) (Game, error) {
 	games := db.C("games")
 	g := Game{}
 	query := bson.M{"gameID": gameID}
@@ -160,11 +172,13 @@ func JoinGame(db *mgo.Database, gameID string, accountID string) (Game, error) {
 		return Game{}, err
 	}
 	for i := range g.Players {
-		if g.Players[i] == accountID {
+		if g.Players[i].AccountID == account.AccountID {
 			return Game{}, PlayerAlreadyJoined
 		}
 	}
-	g.Players = append(g.Players, accountID)
+
+	gp := GamePlayer{account.AccountID, account.Username}
+	g.Players = append(g.Players, gp)
 	if err := games.Update(query, g); err != nil {
 		return Game{}, err
 	}
@@ -179,7 +193,7 @@ func LeaveGame(db *mgo.Database, gameID string, accountID string) (Game, error) 
 		return Game{}, err
 	}
 	for i := range g.Players {
-		if g.Players[i] == accountID {
+		if g.Players[i].AccountID == accountID {
 			g.Players = append(g.Players[0:i], g.Players[i+1:]...)
 			break
 		}

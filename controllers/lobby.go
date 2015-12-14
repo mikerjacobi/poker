@@ -13,6 +13,7 @@ import (
 
 type CreateGameRequest struct {
 	GameName string `json:"gameName"`
+	GameType string `json:"gameType"`
 }
 
 func GetGame(c *echo.Context) error {
@@ -63,7 +64,7 @@ func CreateGame(c *echo.Context) error {
 	}
 
 	db := c.Get("db").(*mgo.Database)
-	game, err := models.CreateGame(db, cg.GameName)
+	game, err := models.CreateGame(db, cg.GameName, cg.GameType)
 	if err != nil {
 		logrus.Errorf("failed to create game: %s", err)
 		c.JSON(500, Response{})
@@ -84,7 +85,7 @@ func JoinGame(c *echo.Context) error {
 
 	logrus.Infof("game: %s, acctid: %s", gameID, a.AccountID)
 	db := c.Get("db").(*mgo.Database)
-	game, err := models.JoinGame(db, gameID, a.AccountID)
+	game, err := models.JoinGame(db, gameID, a)
 	if err == models.PlayerAlreadyJoined {
 		logrus.Errorf("player already joined in join game")
 		c.JSON(409, Response{})

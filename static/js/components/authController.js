@@ -34,28 +34,38 @@ class LoginCreateForm extends React.Component{
             }
 
             data = <div>
-                    <input type="text"
-                        placeholder="username"
-                        value={username} 
-                        onChange={this.changeUsername}/>
+                        <div className="ui input"><input 
+                            type="text"
+                            placeholder="username"
+                            value={username} 
+                            onChange={this.changeUsername}/>
+                        </div>
                     
-                    <br/>
-                    <input type="password"
-                        placeholder="password"
-                        value={password} 
-                        onChange={this.changePassword}/>
-                    <button onClick={this.props.login.bind(this, username, password)}> 
-                        Login 
-                    </button>    
+                        <br/>
+                        <div className="ui input"><input 
+                            type="password"
+                            placeholder="password"
+                            value={password} 
+                            onChange={this.changePassword}/>
+                        </div>
+                        <button 
+                            className="ui primary button"
+                            onClick={this.props.login.bind(this, username, password)}> 
+                            Login 
+                        </button>    
 
-                    <br/>
-                    <input type="password"
+                        <br/>
+                        <div className="ui input"><input 
+                            type="password"
                             placeholder="password repeat"
                             value={repeat} 
                             onChange={this.changeRepeat}/>
-                    <button onClick={this.props.createAccount.bind(this, username, password, repeat)}> 
-                        Create Account 
-                    </button>
+                        </div>
+                        <button     
+                            className="ui button"
+                            onClick={this.props.createAccount.bind(this, username, password, repeat)}> 
+                            Create Account 
+                        </button>
                 </div>;
         }
         return data;
@@ -130,7 +140,7 @@ class Logout extends React.Component {
         }
         return(
             <label onClick={this.clickLogout}>
-                -- <a href="#/">Logout</a>
+                <a href="#/">Logout</a>
             </label>
         );
     }

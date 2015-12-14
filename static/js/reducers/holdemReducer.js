@@ -8,6 +8,7 @@ var getInitialState = function(){
         game: {
             gameID:"",
             gameName:"",
+            gameType:"",
             players:[]
         }
     };
@@ -25,6 +26,7 @@ exports.Holdem = function(state, action) {
         newState.game = {
             gameID: action.game.gameID,
             gameName: action.game.gameName,
+            gameType: action.game.gameType,
             players: action.game.players
         };
         break;

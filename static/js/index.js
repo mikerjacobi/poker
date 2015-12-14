@@ -39,22 +39,17 @@ class App extends React.Component {
         return (
             <Provider store={store}>
                 <div>
-                    <h4>Flux Demo!</h4>
-                    <router.Link onClick={Common.SetPath(store)} to="/">Index</router.Link> -- 
-                    <router.Link onClick={Common.SetPath(store)} to="/math">Math</router.Link> -- 
-                    <router.Link onClick={Common.SetPath(store)} to="/lobby">Lobby</router.Link> -- 
-                    <router.Link onClick={Common.SetPath(store)} to="/async">Async</router.Link> -- 
-                    <router.Link onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
-                    <Logout/>
-                     
-                    <div className="column">
-                        <div className="ui one column stackable padded middle aligned centered color grid">
-                              <div className="blue column"></div>
-                        </div>
+                    <div className="ui fixed inverted menu">
+                        <router.Link className="item" onClick={Common.SetPath(store)} to="/">Index</router.Link>  
+                        <router.Link className="item" onClick={Common.SetPath(store)} to="/math">Math</router.Link>  
+                        <router.Link className="item" onClick={Common.SetPath(store)} to="/lobby">Lobby</router.Link>  
+                        <router.Link className="item" onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
+                        <div className="item"><Logout /></div>
                     </div>
+                         
                     <br/>
 
-                    {this.props.children}
+                    <div>{this.props.children}</div>
                 </div>
             </Provider>
         )

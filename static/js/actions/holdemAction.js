@@ -7,8 +7,6 @@ var Actions = require("./actions").Actions;
 exports.INIT = 'HOLDEMINIT'
 
 exports.Initialize = function(dispatch, initialized, gameID){
-    console.log(dispatch, initialized, gameID)
-
     if (initialized){return;}
     
     var url = Config.baseURL + "/game/" + gameID
