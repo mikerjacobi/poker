@@ -13,10 +13,12 @@ class HoldemMenu extends React.Component {
             players.push(this.props.game.players[i].name);
         }
         return(<div> 
-                {this.props.game.gameName} -
-                {this.props.game.gameType} - 
-                {players.join(", ")} - 
-                <button onClick={this.props.leaveGame}>
+                <div className="ui green label"> {this.props.game.gameName} </div>
+                <div className="ui teal label"> {this.props.game.gameType}  </div>
+                <div className="ui blue label"> Players: {players.join(", ")} </div>
+                <button 
+                    className="ui black mini button"
+                    onClick={this.props.leaveGame}>
                     Leave Game
                 </button>
             </div>
@@ -26,7 +28,13 @@ class HoldemMenu extends React.Component {
 
 class HoldemTable extends React.Component {
     render() {
-        return(<div> game place holder </div>);
+        return(<div> 
+            <div className="ui three column stackable padded middle aligned centered color grid">
+                <div className="orange column"></div>
+                game place holder 
+                <div className="violet column"></div>
+            </div>
+        </div>);
     };
 };
 
@@ -60,7 +68,7 @@ class HoldemController extends React.Component {
                     {...game}
                     leaveGame={this.leaveGame}
                 />
-
+                <br/>
                 <HoldemTable 
                     {...game}
                 />

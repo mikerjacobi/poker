@@ -1,14 +1,17 @@
 ### poker 
 
-#### building poker app from scratch
+#### building from scratch
 * cd client
 * npm install
 * cd semantic
 * gulp build
-* yes to RTL, otherwise take all the defaults 
-* cd ../..
+* yes to RTL, otherwise take all defaults 
+* cd ../../server
 * go build && docker-compose up -d
 * insert echo.math({count:0})
 
-#### restarting container for development
-1) run: `go build && docker restart poker_echo_1 && docker logs --tail=1 -f poker_echo_1`
+#### development commands
+restart the server, from server/
+* go build && docker restart server_echo_1 && docker logs --tail=1 -f server_echo_1
+recompile javascript, from client/
+* browserify js/index.js -t reactify --debug -o js/bundle.js

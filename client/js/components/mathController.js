@@ -9,11 +9,12 @@ class Counter extends React.Component {
     render() {
         return(
             <div> 
-                Count: {this.props.count} <br/>
-                <button onClick={this.props.increment}>Increment</button>
-                <button onClick={this.props.decrement}>Decrement</button>
-                <button onClick={this.props.square}>Square</button>
-                <button onClick={this.props.sqrt}>Sqrt</button>
+                <div className="ui label"> Count: </div>
+                <div className="ui massive black label"> {this.props.count} </div> <br/> <br/>
+                <button className="ui olive button" onClick={this.props.increment}>Increment</button>
+                <button className="ui green button" onClick={this.props.decrement}>Decrement</button>
+                <button className="ui teal button" onClick={this.props.square}>Square</button>
+                <button className="ui blue button" onClick={this.props.sqrt}>Sqrt</button>
             </div>
         )}
 };
