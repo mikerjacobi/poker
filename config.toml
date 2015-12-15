@@ -1,4 +1,0 @@
-database = "echo"
-base_uri = "jacobra.com:8004"
-max_open_games = 5
-game_types = "highcard,holdem"

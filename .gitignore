@@ -1,7 +1,7 @@
-poker
-static/node_modules
-static/semantic/dist/
-static/semantic/tasks
+server/poker
+client/node_modules
+client/semantic/dist
+client/semantic/tasks
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
