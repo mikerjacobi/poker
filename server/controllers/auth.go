@@ -71,6 +71,12 @@ func Login(c *echo.Context) error {
 		return nil
 	}
 
+	if err := models.RemovePlayerFromGames(db, account.AccountID); err != nil {
+		logrus.Errorf("failed to remove player from games in login: %s", err.Error())
+		c.JSON(500, Response{})
+		return nil
+	}
+
 	resp := struct {
 		SessionID string `json:"sessionID"`
 	}{sessionID}
@@ -83,8 +89,6 @@ func Login(c *echo.Context) error {
 }
 
 func Logout(c *echo.Context) error {
-	logrus.Infof("logout")
-
 	a, ok := c.Get("user").(models.Account)
 	if !ok {
 		logrus.Errorf("failed to get user in logout")
@@ -96,6 +100,12 @@ func Logout(c *echo.Context) error {
 	err := a.ClearSession(db)
 	if err != nil {
 		logrus.Errorf("failed to clear session in logout: %s", err.Error())
+		c.JSON(500, Response{})
+		return nil
+	}
+
+	if err := models.RemovePlayerFromGames(db, a.AccountID); err != nil {
+		logrus.Errorf("failed to remove player from games in logout: %s", err.Error())
 		c.JSON(500, Response{})
 		return nil
 	}

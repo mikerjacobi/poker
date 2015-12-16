@@ -20,9 +20,6 @@ var (
 	GameLeave    = "GAMELEAVE"
 	LobbyActions = []string{GameCreate, GameStart, GameJoin, GameLeave}
 	GameTypes    []string
-
-	//errors
-	PlayerAlreadyJoined = errors.New("player already joined")
 )
 
 type GamePlayer struct {
@@ -173,7 +170,7 @@ func JoinGame(db *mgo.Database, gameID string, account Account) (Game, error) {
 	}
 	for i := range g.Players {
 		if g.Players[i].AccountID == account.AccountID {
-			return Game{}, PlayerAlreadyJoined
+			return g, nil
 		}
 	}
 
@@ -195,11 +192,34 @@ func LeaveGame(db *mgo.Database, gameID string, accountID string) (Game, error) 
 	for i := range g.Players {
 		if g.Players[i].AccountID == accountID {
 			g.Players = append(g.Players[0:i], g.Players[i+1:]...)
+			if err := games.Update(query, g); err != nil {
+				return Game{}, err
+			}
 			break
 		}
 	}
-	if err := games.Update(query, g); err != nil {
-		return Game{}, err
-	}
 	return g, nil
+}
+
+func RemovePlayerFromGames(db *mgo.Database, accountID string) error {
+	gamesDB := db.C("games")
+	games := []Game{}
+	query := bson.M{"state": "open"}
+	if err := gamesDB.Find(query).All(&games); err != nil {
+		return err
+	}
+
+	for _, game := range games {
+		for i := range game.Players {
+			if game.Players[i].AccountID == accountID {
+				game.Players = append(game.Players[0:i], game.Players[i+1:]...)
+				if err := gamesDB.Update(bson.M{"gameID": game.ID}, game); err != nil {
+					return err
+				}
+				break
+			}
+		}
+
+	}
+	return nil
 }

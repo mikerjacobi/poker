@@ -59,6 +59,7 @@ class HoldemController extends React.Component {
     }
     render() {
         if (!this.props.initialized){
+            Holdem.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
             return(<div> loading... </div>);
         }
         var game = {game:this.props.game};
