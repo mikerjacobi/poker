@@ -20,6 +20,8 @@ exports.Lobby = function(state, action) {
         newState.games = action.games;
         break;
     case Lobby.JOIN:
+        break;
+    case Lobby.JOINALERT:
         var newGames = Object.assign({}, state.games, {});
         newGames[action.game.gameID] = action.game;
         newState.games = newGames;
@@ -30,6 +32,8 @@ exports.Lobby = function(state, action) {
         newState.games = newGames;
         break;
     case Lobby.LEAVE:
+        break;
+    case Lobby.LEAVEALERT:
         var newGames = Object.assign({}, state.games, {});
         newGames[action.game.gameID] = action.game;
         newState.games = newGames;

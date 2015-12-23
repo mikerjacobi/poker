@@ -20,23 +20,12 @@ type Comms struct {
 	Clients map[string]*Client //websocket id = Client
 }
 
-func newComms(db *mgo.Database) Comms {
-	c := Comms{}
-	c.DB = db
-	c.Clients = make(map[string]*Client)
-	return c
-}
-
-func (c Comms) SetClient(m Message) {
-	if c.Clients[m.WebSocketID] != nil {
+func (c Comms) SetClient(client *Client) {
+	if c.Clients[client.WebSocketID] != nil {
 		//already connected
 		return
 	}
-	c.Clients[m.WebSocketID] = &Client{
-		WebSocket:   m.WebSocket,
-		WebSocketID: m.WebSocketID,
-		Account:     m.Sender,
-	}
+	c.Clients[client.WebSocketID] = client
 }
 
 func (c Comms) DeleteClient(wsID string) {

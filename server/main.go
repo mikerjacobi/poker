@@ -81,10 +81,8 @@ func main() {
 	auth.Get("/math", controllers.GetMathCount)
 	auth.WebSocket("/ws", controllers.HandleWebSocket)
 	auth.Post("/logout", controllers.Logout)
-	auth.Post("/game", controllers.CreateGame)
 	auth.Get("/game/:gameID", controllers.GetGame)
 	auth.Get("/games", controllers.GetOpenGames)
-	auth.Post("/game/:gameID/join", controllers.JoinGame)
 
 	// start server
 	logrus.Info("starting server")

@@ -12,11 +12,11 @@ exports.LOGIN = 'LOGIN';
 exports.LOGOUT = 'LOGOUT';
 exports.WSCONNECT = 'WSCONNECT';
 exports.WSDISCONNECT = 'WSDISCONNECT';
-exports.WSERROR = 'WSERROR';
+exports.SERVERERROR = 'SERVERERROR';
 
 Actions.Register(exports.WSCONNECT);
 Actions.Register(exports.WSDISCONNECT);
-Actions.Register(exports.WSERROR, function(dispatch, msg){
+Actions.Register(exports.SERVERERROR, function(dispatch, msg){
     dispatch({type:Async.FETCHED});
     dispatch({type:Account.FETCHED});
     console.log("server returned ws error: ", msg);
@@ -57,7 +57,7 @@ exports.wsConnect = function(dispatch, currentWSConnection){
     };
 
     wsConnection.onerror = function (event) {
-        Actions.Call(exports.WSERROR)(dispatch, event.data);
+        Actions.Call(exports.SERVERERROR)(dispatch, event.data);
     };
 
     wsConnection.onmessage = function(event) {

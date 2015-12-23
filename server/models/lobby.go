@@ -3,23 +3,11 @@ package models
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/pborman/uuid"
 	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-)
-
-var (
-	//lobby actions
-	GameCreate   = "GAMECREATE"
-	GameStart    = "GAMESTART"
-	GameJoin     = "GAMEJOIN"
-	GameLeave    = "GAMELEAVE"
-	LobbyActions = []string{GameCreate, GameStart, GameJoin, GameLeave}
-	GameTypes    []string
 )
 
 type GamePlayer struct {
@@ -33,72 +21,6 @@ type Game struct {
 	State    string       `json:"state" bson:"state"`
 	Players  []GamePlayer `json:"players" bson:"players"`
 	GameType string       `json:"gameType" bson:"gameType"`
-}
-
-type LobbyMessage struct {
-	Message
-	Game `json:"game"`
-}
-
-type LobbyQueue struct {
-	DB *mgo.Database
-	Q  chan LobbyMessage
-	*Comms
-}
-
-func NewLobbyQueue(db *mgo.Database, comms *Comms) (LobbyQueue, error) {
-	GameTypes = strings.Split(viper.GetString("game_types"), ",")
-	lq := LobbyQueue{
-		DB:    db,
-		Comms: comms,
-	}
-
-	lq.Q = make(chan LobbyMessage)
-	go lq.ReadMessages()
-	return lq, nil
-}
-
-func (lq LobbyQueue) ReadMessages() {
-	for {
-		lobbyMessage := <-lq.Q
-		switch lobbyMessage.Type {
-		case GameCreate:
-			g, err := CreateGame(lq.DB, lobbyMessage.Game.Name, lobbyMessage.Game.GameType)
-			if err != nil {
-				logrus.Errorf("failed to create game: %s", err)
-				continue
-			}
-			lq.SendAll(LobbyMessage{
-				Message: lobbyMessage.Message,
-				Game:    g,
-			})
-		case GameStart:
-			logrus.Infof("game start in lobbyQ readmsgs")
-		case GameJoin:
-			game, err := JoinGame(lq.DB, lobbyMessage.Game.ID, lobbyMessage.Message.Sender)
-			if err != nil {
-				logrus.Errorf("failed to join game: %s", err)
-				continue
-			}
-			lq.SendAll(LobbyMessage{
-				Message: lobbyMessage.Message,
-				Game:    game,
-			})
-		case GameLeave:
-			accountID := lobbyMessage.Message.Sender.AccountID
-			game, err := LeaveGame(lq.DB, lobbyMessage.Game.ID, accountID)
-			if err != nil {
-				logrus.Errorf("failed to leave game: %s", err)
-				continue
-			}
-			lq.SendAll(LobbyMessage{
-				Message: lobbyMessage.Message,
-				Game:    game,
-			})
-		default:
-			continue
-		}
-	}
 }
 
 func LoadGame(db *mgo.Database, gameID, gameName string) (Game, error) {
@@ -129,14 +51,6 @@ func LoadOpenGames(db *mgo.Database) ([]Game, error) {
 }
 func CreateGame(db *mgo.Database, name, gameType string) (Game, error) {
 	games := db.C("games")
-
-	if name == "" {
-		return Game{}, errors.New("gamename cannot be empty")
-	}
-
-	if !StringInSlice(gameType, GameTypes) {
-		return Game{}, fmt.Errorf("invalid gametype: %s", gameType)
-	}
 
 	openGames, err := LoadOpenGames(db)
 	maxOpenGames := viper.GetInt("max_open_games")

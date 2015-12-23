@@ -1,16 +1,5 @@
 package models
 
-import (
-	"github.com/Sirupsen/logrus"
-	"gopkg.in/mgo.v2"
-)
-
-var (
-	//holdem actions
-	HoldemStart   = "HOLDEMSTART"
-	HoldemActions = []string{HoldemStart}
-)
-
 /*
 type Player struct{
 	AccountID string
@@ -37,37 +26,3 @@ type Holdem struct {
 	Hands []Hand `json:"players" bson:"players"`
 }
 */
-
-type HoldemMessage struct {
-	Message
-	Game `json:"game"`
-}
-
-type HoldemQueue struct {
-	DB *mgo.Database
-	Q  chan HoldemMessage
-	*Comms
-}
-
-func NewHoldemQueue(db *mgo.Database, c *Comms) (HoldemQueue, error) {
-	hq := HoldemQueue{
-		DB:    db,
-		Comms: c,
-	}
-
-	hq.Q = make(chan HoldemMessage)
-	go hq.ReadMessages()
-	return hq, nil
-}
-
-func (hq HoldemQueue) ReadMessages() {
-	for {
-		holdemMessage := <-hq.Q
-		switch holdemMessage.Type {
-		case GameStart:
-			logrus.Infof("game start in holdemQ readmsgs")
-		default:
-			continue
-		}
-	}
-}

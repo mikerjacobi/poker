@@ -8,7 +8,9 @@ exports.INIT = 'LOBBYINIT'
 exports.CREATE = 'GAMECREATE'
 exports.START = 'GAMESTART'
 exports.JOIN = 'GAMEJOIN'
+exports.JOINALERT = 'GAMEJOINALERT'
 exports.LEAVE = 'GAMELEAVE'
+exports.LEAVEALERT = 'GAMELEAVEALERT'
 
 Actions.Register(exports.CREATE);
 Actions.Register(exports.JOIN, function(dispatch, msg){
@@ -16,8 +18,13 @@ Actions.Register(exports.JOIN, function(dispatch, msg){
     Nav.GoToPath(dispatch, gameRoute);
     dispatch(msg);
 });
+Actions.Register(exports.JOINALERT, function(dispatch, msg){
+    dispatch(msg);
+});
 Actions.Register(exports.LEAVE, function(dispatch, msg){
     Nav.GoToPath(dispatch, "/lobby");
+});
+Actions.Register(exports.LEAVEALERT, function(dispatch, msg){
     dispatch(msg);
 });
         

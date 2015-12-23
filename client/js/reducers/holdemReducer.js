@@ -30,10 +30,26 @@ exports.Holdem = function(state, action) {
             players: action.game.players
         };
         break;
+    case Lobby.JOINALERT:
+        newState.game = {
+            gameID: action.game.gameID,
+            gameName: action.game.gameName,
+            gameType: action.game.gameType,
+            players: action.game.players
+        };
+        break;
     case Lobby.JOIN:
         return getInitialState();
     case Lobby.LEAVE:
         return getInitialState();
+    case Lobby.LEAVEALERT:
+        newState.game = {
+            gameID: action.game.gameID,
+            gameName: action.game.gameName,
+            gameType: action.game.gameType,
+            players: action.game.players
+        };
+        break;
     case Auth.LOGIN:
         return getInitialState();
     default:
