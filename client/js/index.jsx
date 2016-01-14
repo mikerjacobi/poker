@@ -1,4 +1,16 @@
 "use strict"
+
+if (!('bind' in Function.prototype)) {
+    Function.prototype.bind = function() {
+        var funcObj = this;
+        var extraArgs = Array.prototype.slice.call(arguments);
+        var thisObj = extraArgs.shift();
+        return function() {
+            return funcObj.apply(thisObj, extraArgs.concat(Array.prototype.slice.call(arguments)));
+        };
+    };
+}
+
 var Redux = require("redux");
 var React = require("react");
 var render = require("react-dom").render;

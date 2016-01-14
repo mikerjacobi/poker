@@ -9,7 +9,6 @@ exports.DECREMENT = 'DECREMENT'
 exports.SQUARE = 'SQUARE'
 exports.SQRT = 'SQRT'
 exports.INIT = 'MATHINIT'
-
 Actions.Register(exports.INCREMENT);
 Actions.Register(exports.DECREMENT);
 Actions.Register(exports.SQUARE);

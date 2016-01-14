@@ -76,7 +76,7 @@ func CORSMiddleware() echo.MiddlewareFunc {
 			c.Response().Header().Set("Access-Control-Allow-Origin", "*")
 			c.Response().Header().Set("Access-Control-Allow-Methods", "*")
 			c.Response().Header().Set("Access-Control-Allow-Headers", "x-session")
-			if c.Request().Method == "OPTIONS" {
+			if c.Request().Method == "OPTIONS" || c.Request().Method == "HEAD" {
 				return HealthCheck(c)
 			}
 			return h(c)

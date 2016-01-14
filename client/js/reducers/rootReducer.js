@@ -7,13 +7,12 @@ var Auth = require("./authReducer").Auth;
 var Nav = require("./navReducer").Nav;
 var Account = require("./accountReducer").Account;
 
-const Root = Redux.combineReducers({
-    Math,
-    Lobby,
-    Holdem,
-    Async,
-    Auth,
-    Nav,
-    Account
+exports.Root = Redux.combineReducers({
+    Math:Math,
+    Lobby:Lobby,
+    Holdem:Holdem,
+    Async:Async,
+    Auth:Auth,
+    Nav:Nav,
+    Account:Account
 })
-exports.Root = Root;

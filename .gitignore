@@ -1,4 +1,6 @@
 server/poker
+server/server
+client/js/bundle.js
 client/node_modules
 client/semantic/dist
 client/semantic/tasks

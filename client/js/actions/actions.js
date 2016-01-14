@@ -5,21 +5,20 @@ defaultCallback = function(dispatch, msg){
 }
 
 exports.Actions = {
-    Register(action, callback){
+    Register: function(action, callback){
         if (callback === undefined){
             callback = defaultCallback;
         }
         actions[action] = callback; 
     },
-    Call(action){
+    Call: function(action){
         if (actions[action] == undefined){
             throw action + " is not a registered action.";
         }
         return actions[action];
     },
-    List(){
+    List: function(){
         console.log(actions);
     }
-}
-
+};
 

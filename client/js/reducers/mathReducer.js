@@ -1,6 +1,5 @@
 var MathActions = require("../actions/mathAction");
 var Auth = require("../actions/authAction");
-
 var getInitialState = function(){
     return {
         count: 0,
