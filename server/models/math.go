@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"math"
 
 	"gopkg.in/mgo.v2"
@@ -68,12 +69,29 @@ func checkBounds(count int) int {
 
 func LoadMathCount(db *mgo.Database) (*Counter, error) {
 	mathdb := db.C("math")
-	counter := &Counter{}
-	query := bson.M{}
-	if err := mathdb.Find(query).One(counter); err != nil {
-		return counter, err
+
+	counter := Counter{}
+	if err := mathdb.Find(bson.M{}).One(&counter); err != nil {
+		if err.Error() == "not found" {
+			//look for uninitialized math counter...
+			if err := initializeMathCounter(db); err != nil {
+				return nil, err
+			}
+			counter.Count = 0
+		} else {
+			return nil, err
+		}
 	}
-	return counter, nil
+	return &counter, nil
+}
+
+func initializeMathCounter(db *mgo.Database) error {
+	mathDB := db.C("math")
+	//we have an unintialized math counter
+	if err := mathDB.Insert(Counter{0}); err != nil {
+		return fmt.Errorf("failed to init math counter: %s", err)
+	}
+	return nil
 }
 
 func saveMathCount(db *mgo.Database, c *Counter) error {

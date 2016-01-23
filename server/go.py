@@ -1,9 +1,9 @@
 #!/usr/bin/python
 import os
 
-cmd = "docker ps -a | grep echo | awk '{print $1}' | xargs docker rm -f"
+cmd = "docker ps -a | grep server | awk '{print $1}' | xargs docker rm -f"
 os.system(cmd)
-cmd = "docker images | grep echo | awk '{print $3}' | xargs docker rmi -f"
+cmd = "docker images | grep server | awk '{print $3}' | xargs docker rmi -f"
 os.system(cmd)
 cmd = "rm poker"
 os.system(cmd)

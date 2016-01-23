@@ -12,3 +12,8 @@ echo:
         - mongo
 mongo:
     image: mongo
+dpxdt:
+    image: dpxdt
+    ports:
+        - "8015:5000"
+
