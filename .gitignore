@@ -4,6 +4,10 @@ client/js/bundle.js
 client/node_modules
 client/semantic/dist
 client/semantic/tasks
+test/testenv
+test/build
+*pyc
+test/ghostdriver.log
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
