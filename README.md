@@ -16,3 +16,8 @@ restart the server, from server/
 
 recompile javascript, from client/
 * webpack --watch
+
+#### testing
+* make sure phantomjs is installed globally: `sudo npm install -g phantomjs`
+* `cd test`
+* `behave`
