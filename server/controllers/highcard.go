@@ -48,8 +48,8 @@ func (hcc HighCardController) ReadMessages() {
 }
 
 func (hcc HighCardController) CheckStartGame(game models.Game) error {
-	if len(game.Players) < 2 {
-		return fmt.Errorf("highcard: too few players")
+	if !models.HighCardPlayable(game) {
+		return fmt.Errorf("highcard game not in playable state")
 	}
 	gameJSON, err := json.Marshal(game)
 	if err != nil {
@@ -65,12 +65,14 @@ func (hcc HighCardController) HandleStart(msg []byte) error {
 	if err := json.Unmarshal(msg, &game); err != nil {
 		return fmt.Errorf("failed to unmarshal game in highcardstart")
 	}
+
 	hcg, err := models.NewHighCardGame(game, hcc.Comms)
 	if err != nil {
 		return fmt.Errorf("failed to init high card game: %+v", err)
 	}
 	hcc.Games[game.ID] = hcg
-	if err = hcc.Games[game.ID].Start(); err != nil {
+
+	if err := hcg.PlayHand(hcc.DB); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
 	return nil
@@ -86,7 +88,7 @@ func (hcc HighCardController) HandleReplay(msg []byte) error {
 		return fmt.Errorf("failed to load high card game.")
 	}
 
-	if err := hcg.PlayHand(); err != nil {
+	if err := hcg.PlayHand(hcc.DB); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
 	return nil

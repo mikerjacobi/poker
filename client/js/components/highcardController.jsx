@@ -13,6 +13,10 @@ class HighCardMenu extends React.Component {
             players.push(this.props.players[i].name);
         }
         return(<div> 
+                <div className="ui green label"> {this.props.gameName} </div>
+                <div className="ui teal label"> {this.props.gameType}  </div>
+                <div className="ui blue label"> Players: {players.join(", ")} </div>
+                 <br/><br/>
                 <button 
                     className="ui black tiny button"
                     onClick={this.props.replay}>
@@ -22,10 +26,7 @@ class HighCardMenu extends React.Component {
                     className="ui black tiny button"
                     onClick={this.props.leaveGame}>
                     Leave Game
-                </button> <br/><br/>
-                <div className="ui green label"> {this.props.gameName} </div>
-                <div className="ui teal label"> {this.props.gameType}  </div>
-                <div className="ui blue label"> Players: {players.join(", ")} </div>
+                </button>
             </div>
         );
     };
