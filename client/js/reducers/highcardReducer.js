@@ -5,12 +5,14 @@ var Auth = require("../actions/authAction");
 var getInitialState = function(){
     return {
         initialized: false,
-        game: {
+        gameInfo: {
             gameID:"",
             gameName:"",
             gameType:"",
             players:[],
-            hand: {}
+        },
+        gameState: {
+            card: {}
         }
     };
 };
@@ -19,40 +21,28 @@ exports.HighCard = function(state, action) {
     if (state == undefined){
         state = getInitialState();
     };
-    
-    var newState = {}
+    var newState = state
     switch (action.type) {
     case HighCard.INIT:
-        newState.initialized = true;
-        newState.game = {
-            gameID: action.game.gameID,
-            gameName: action.game.gameName,
-            gameType: action.game.gameType,
-            players: action.game.players
-        };
+        if (!state.initialized){
+          newState = action;
+        }
         break;
-    case HighCard.RCVCARD:
-        newState.game.hand = action.hand;
+    case HighCard.UPDATE:
+        newState = action;
+        newState.initialized = true;
         break;
     case Lobby.JOINALERT:
-        newState.game = {
-            gameID: action.game.gameID,
-            gameName: action.game.gameName,
-            gameType: action.game.gameType,
-            players: action.game.players
-        };
+        newState = action;
         break;
     case Lobby.JOIN:
-        return getInitialState();
+        if (!state.initialized){
+          return getInitialState();
+        }
     case Lobby.LEAVE:
         return getInitialState();
     case Lobby.LEAVEALERT:
-        newState.game = {
-            gameID: action.game.gameID,
-            gameName: action.game.gameName,
-            gameType: action.game.gameType,
-            players: action.game.players
-        };
+        newState.gameInfo = action.game;
         break;
     case Auth.LOGIN:
         return getInitialState();

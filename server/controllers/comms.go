@@ -13,12 +13,12 @@ func newComms(db *mgo.Database) *models.Comms {
 	return &c
 }
 
-func sendError(c *models.Comms, wsID string, msg interface{}) {
+func sendError(c *models.Comms, accountID string, msg interface{}) {
 	err := models.ErrorMessage{
 		Type:  models.ServerError,
 		Error: msg,
 	}
-	if sendErr := c.Send(wsID, err); sendErr != nil {
+	if sendErr := c.Send(accountID, err); sendErr != nil {
 		logrus.Errorf("send error: %+v", sendErr)
 	}
 }

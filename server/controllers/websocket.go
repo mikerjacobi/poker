@@ -116,7 +116,7 @@ func (mh MessageHandler) HandleMessage(c *echo.Context, msg []byte, wsID string,
 	} else {
 		err := fmt.Sprintf("invalid action: %s", m.Type)
 		logrus.Errorf("%s: %s", a.AccountID, err)
-		sendError(mh.ConnectionController.Comms, wsID, err)
+		sendError(mh.ConnectionController.Comms, a.AccountID, err)
 	}
 	return nil
 }

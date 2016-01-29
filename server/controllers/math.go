@@ -54,7 +54,7 @@ func (mc MathController) HandleIncrement(msg models.Message) {
 	c, err := models.IncrementCounter(mc.DB)
 	if err != nil {
 		e := "increment error "
-		sendError(mc.Comms, msg.WebSocketID, e)
+		sendError(mc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -70,7 +70,7 @@ func (mc MathController) HandleDecrement(msg models.Message) {
 	c, err := models.DecrementCounter(mc.DB)
 	if err != nil {
 		e := "decrement error "
-		sendError(mc.Comms, msg.WebSocketID, e)
+		sendError(mc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -86,7 +86,7 @@ func (mc MathController) HandleSquare(msg models.Message) {
 	c, err := models.SquareCounter(mc.DB)
 	if err != nil {
 		e := "square error "
-		sendError(mc.Comms, msg.WebSocketID, e)
+		sendError(mc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -102,7 +102,7 @@ func (mc MathController) HandleSqrt(msg models.Message) {
 	c, err := models.SqrtCounter(mc.DB)
 	if err != nil {
 		e := "sqrt error "
-		sendError(mc.Comms, msg.WebSocketID, e)
+		sendError(mc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}

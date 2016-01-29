@@ -5,10 +5,13 @@ var Actions = require("./actions").Actions;
 
 //highcard actions
 exports.INIT = 'HIGHCARDINIT'
-exports.RCVCARD = 'HIGHCARDRCVCARD'
+exports.UPDATE = 'HIGHCARDUPDATE'
 
 //register highcard funcs
-Actions.Register(exports.RCVCARD)
+Actions.Register(exports.UPDATE, function(dispatch, msg){
+  console.log(msg);
+  dispatch(msg);
+})
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}
@@ -23,7 +26,9 @@ exports.Initialize = function(dispatch, initialized, gameID){
     }).then(function(json){
         var action = {
             type: exports.INIT,
-            game: json.payload
+            gameInfo: json.payload,
+            gameState:{},
+            initialized: true
         };
         dispatch(action);
     }).catch(function(err){

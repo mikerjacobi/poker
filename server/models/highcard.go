@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"github.com/Sirupsen/logrus"
 )
 
@@ -33,13 +34,16 @@ type HighCard struct {
 
 var (
 	//highcard actions
-	HighCardStart   = "HIGHCARDSTART"
+	HighCardStart  = "HIGHCARDSTART"
+	HighCardUpdate = "HIGHCARDUPDATE"
+
 	HighCardActions = []string{HighCardStart}
 )
 
 type HighCardMessage struct {
 	Message
-	Game `json:"game"`
+	Game  `json:"gameInfo"`
+	State interface{} `json:"gameState"`
 }
 
 type Hand struct {
@@ -74,16 +78,21 @@ func (hcg *HighCardGame) NewHand() *Hand {
 }
 
 func (hcg *HighCardGame) Start() error {
-	logrus.Infof("game start hcg start")
 	//deal
 	h := hcg.NewHand()
 	c, _ := h.Deck.Deal()
 	logrus.Infof("card: %+v", c.Display)
-	//hcg.SendPlayers(c)
-	//msg := LobbyMessage{Message: msg, Game: game}
-	//if err := hcg.Comms.SendGroup(msg, PlayerAccountIDs(hcg.Hand.Players)); err != nil{
-	//	return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
-	//}
+	msg := HighCardMessage{
+		Message: Message{Type: HighCardUpdate},
+		Game:    hcg.Game,
+		State: struct {
+			Card `json:"card"`
+		}{*c},
+	}
+	accountIDs := PlayerAccountIDs(hcg.Hand.Players)
+	if err := hcg.Comms.SendGroup(msg, accountIDs); err != nil {
+		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
+	}
 	//wait for action
 	//    receive action
 	//    validate action

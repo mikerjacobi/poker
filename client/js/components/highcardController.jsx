@@ -9,12 +9,12 @@ var Auth = require("../actions/authAction");
 class HighCardMenu extends React.Component {
     render() {
         var players = [];
-        for (var i=0; i<this.props.game.players.length; i++){
-            players.push(this.props.game.players[i].name);
+        for (var i=0; i<this.props.players.length; i++){
+            players.push(this.props.players[i].name);
         }
         return(<div> 
-                <div className="ui green label"> {this.props.game.gameName} </div>
-                <div className="ui teal label"> {this.props.game.gameType}  </div>
+                <div className="ui green label"> {this.props.gameName} </div>
+                <div className="ui teal label"> {this.props.gameType}  </div>
                 <div className="ui blue label"> Players: {players.join(", ")} </div>
                 <button 
                     className="ui black mini button"
@@ -28,16 +28,16 @@ class HighCardMenu extends React.Component {
 
 class HighCardTable extends React.Component {
     render() {
+        var card = "";
+        if (this.props && this.props.card){
+            card = this.props.card.display;
+        }
         return(<div> 
-            <div className="ui three column stackable padded middle aligned centered color grid">
-                <div className="orange column"></div>
-                HIGHCARD place holder - 
-                {this.props.game.hand}
-                <div className="violet column"></div>
-            </div>
+                {card}
         </div>);
     };
 };
+
 
 class HighCardController extends React.Component {
     constructor(props){
@@ -65,16 +65,15 @@ class HighCardController extends React.Component {
         if (!this.props.initialized){
             return(<div> loading... </div>);
         }
-        var game = {game:this.props.game};
         return (
             <div>
                 <HighCardMenu 
-                    {...game}
+                    {...this.props.gameInfo}
                     leaveGame={this.leaveGame}
                 />
                 <br/>
                 <HighCardTable 
-                    {...game}
+                    {...this.props.gameState}
                 />
             </div>
         );
@@ -84,7 +83,8 @@ class HighCardController extends React.Component {
 var dataMapper = function(state){
     return {
         initialized: state.HighCard.initialized,
-        game: state.HighCard.game,
+        gameInfo: state.HighCard.gameInfo,
+        gameState: state.HighCard.gameState,
         wsConnection: state.Auth.wsConnection
     };
 }

@@ -98,7 +98,6 @@ func validateCreateGame(msg models.Message) (*CreateGameRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Errorf("%+v", cg)
 
 	if cg.Game.Name == "" {
 		return nil, fmt.Errorf("gamename cannot be empty: %+v", string(msg.Raw))
@@ -115,14 +114,14 @@ func (lc LobbyController) HandleCreateGame(msg models.Message) {
 	cg, err := validateCreateGame(msg)
 	if err != nil {
 		e := "failed to validate create game "
-		sendError(lc.Comms, msg.WebSocketID, e)
+		sendError(lc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
 	game, err := models.CreateGame(lc.DB, cg.Name, cg.Type)
 	if err != nil {
 		e := "failed to create game "
-		sendError(lc.Comms, msg.WebSocketID, e)
+		sendError(lc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -154,14 +153,14 @@ func (lc LobbyController) HandleJoinGame(msg models.Message) {
 	account, ok := msg.Context.Get("user").(models.Account)
 	if !ok {
 		e := "failed to get account from context in handleJoinGame"
-		sendError(lc.Comms, msg.WebSocketID, e)
+		sendError(lc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e)
 		return
 	}
 	game, err := models.JoinGame(lc.DB, jg.ID, account)
 	if err != nil {
 		e := "failed to join game. "
-		sendError(lc.Comms, msg.WebSocketID, e)
+		sendError(lc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -175,7 +174,7 @@ func (lc LobbyController) HandleJoinGame(msg models.Message) {
 
 	//notify this client to enter the game
 	resp = models.LobbyMessage{Message: models.Message{Type: models.GameJoin}, Game: game}
-	if err := lc.Send(msg.WebSocketID, resp); err != nil {
+	if err := lc.Send(msg.SenderAccountID, resp); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}
@@ -203,7 +202,7 @@ func (lc LobbyController) HandleLeaveGame(msg models.Message) {
 	game, err := models.LeaveGame(lc.DB, lg.ID, msg.SenderAccountID)
 	if err != nil {
 		e := "failed to leave game. "
-		sendError(lc.Comms, msg.WebSocketID, e)
+		sendError(lc.Comms, msg.SenderAccountID, e)
 		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
@@ -217,7 +216,7 @@ func (lc LobbyController) HandleLeaveGame(msg models.Message) {
 
 	//notify this client to leave the game
 	resp = models.LobbyMessage{Message: models.Message{Type: models.GameLeave}, Game: game}
-	if err := lc.Send(msg.WebSocketID, resp); err != nil {
+	if err := lc.Send(msg.SenderAccountID, resp); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}

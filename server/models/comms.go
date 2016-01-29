@@ -39,52 +39,35 @@ type ErrorMessage struct {
 }
 
 func (c Comms) SetClient(client *Client) {
-	//check to see if this wsID/accountid is connected in another session
-	_, acctOK := c.Clients[client.Account.AccountID]
-	_, wsOK := c.Clients[client.WebSocketID]
-	if acctOK && wsOK {
-		//already connected correctly
-		return
-	} else if acctOK || wsOK {
-		//this means account and websocket are out of sync
-		//delete the bad connection and continue
-		c.DeleteClient(client.WebSocketID)
-	}
-
-	//map both websocketID and accountID to the same client; allows for easier access later
-	c.Clients[client.WebSocketID] = client
 	c.Clients[client.Account.AccountID] = client
 }
 
-func (c Comms) DeleteClient(wsID string) {
-	_, wsOK := c.Clients[wsID]
-	if !wsOK {
+func (c Comms) DeleteClient(accountID string) {
+	_, ok := c.Clients[accountID]
+	if !ok {
 		//doesn't exist, nothing to delete
 		return
 	}
 
 	//close websocket
-	c.Clients[wsID].WebSocket.Close()
-
-	//remove both references to this connection
-	delete(c.Clients, c.Clients[wsID].Account.AccountID)
-	delete(c.Clients, wsID)
+	c.Clients[accountID].WebSocket.Close()
+	delete(c.Clients, accountID)
 }
 
-func (c Comms) Send(wsID string, msg interface{}) error {
+func (c Comms) Send(accountID string, msg interface{}) error {
 	msgJSON, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to jsonmarshal Comms.Send: %s", err.Error())
 	}
 
-	client := c.Clients[wsID]
+	client := c.Clients[accountID]
 	if client == nil {
-		return fmt.Errorf("unknown websocket id in Comms.Send: %s", wsID)
+		return fmt.Errorf("unknown account id in Comms.Send: %s", accountID)
 	}
 
 	if err := websocket.Message.Send(client.WebSocket, string(msgJSON)); err != nil {
 		logrus.Warnf("discarding dead ws conn from send: %s", client.WebSocketID)
-		c.DeleteClient(wsID)
+		c.DeleteClient(accountID)
 	}
 	return nil
 }

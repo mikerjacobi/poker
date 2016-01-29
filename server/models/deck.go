@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
-	"github.com/Sirupsen/logrus"
+	//"github.com/Sirupsen/logrus"
 	"math/rand"
 	"time"
 )
@@ -14,6 +14,7 @@ var hearts Suit = "hearts"
 var diamonds Suit = "diamonds"
 var clubs Suit = "clubs"
 var spades Suit = "spades"
+var nullSuit Suit = "null"
 var suits = []Suit{hearts, diamonds, clubs, spades}
 
 type Rank struct {
@@ -34,12 +35,19 @@ var five = Rank{5, "five"}
 var four = Rank{4, "four"}
 var three = Rank{3, "three"}
 var two = Rank{2, "two"}
+var nullRank = Rank{0, "null"}
 var ranks = []Rank{ace, king, queen, jack, ten, nine, eight, seven, six, five, four, three, two}
 
 type Card struct {
 	Suit    `json:"suit"`
-	Rank    int `json:"rank"`
-	Display string
+	Rank    int    `json:"rank"`
+	Display string `json:"display"`
+}
+
+var nullCard = Card{
+	Suit:    nullSuit,
+	Rank:    0,
+	Display: "null",
 }
 
 type Deck struct {
@@ -48,7 +56,6 @@ type Deck struct {
 }
 
 func NewDeck() *Deck {
-	logrus.Infof("new deck")
 	d := Deck{
 		Cards: make([]Card, 52),
 		Index: 0,

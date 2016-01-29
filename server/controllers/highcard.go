@@ -35,15 +35,18 @@ func (hc HighCardController) ReadMessages() {
 			game := models.Game{}
 			if err := json.Unmarshal(m.Raw, &game); err != nil {
 				logrus.Errorf("failed to unmarshal game in highcardstart")
-				return
+				continue
 			}
 			hcg, err := models.NewHighCardGame(game, hc.Comms)
 			if err != nil {
-				logrus.Errorf("failed to start high card game: %+v", err)
+				logrus.Errorf("failed to init high card game: %+v", err)
 				continue
 			}
 			hc.Games[game.ID] = hcg
-			hc.Games[game.ID].Start()
+			if err = hc.Games[game.ID].Start(); err != nil {
+				logrus.Errorf("failed to start high card game: %+v", err)
+				continue
+			}
 		default:
 			continue
 		}
