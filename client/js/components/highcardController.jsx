@@ -13,14 +13,19 @@ class HighCardMenu extends React.Component {
             players.push(this.props.players[i].name);
         }
         return(<div> 
+                <button 
+                    className="ui black tiny button"
+                    onClick={this.props.replay}>
+                    Replay
+                </button>
+                <button 
+                    className="ui black tiny button"
+                    onClick={this.props.leaveGame}>
+                    Leave Game
+                </button> <br/><br/>
                 <div className="ui green label"> {this.props.gameName} </div>
                 <div className="ui teal label"> {this.props.gameType}  </div>
                 <div className="ui blue label"> Players: {players.join(", ")} </div>
-                <button 
-                    className="ui black mini button"
-                    onClick={this.props.leaveGame}>
-                    Leave Game
-                </button>
             </div>
         );
     };
@@ -43,6 +48,7 @@ class HighCardController extends React.Component {
     constructor(props){
         super(props);
         this.leaveGame = this.leaveGame.bind(this);
+        this.replay = this.replay.bind(this);
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
@@ -61,6 +67,12 @@ class HighCardController extends React.Component {
             this.props.params.gameid
         );    
     }
+    replay(){
+        HighCard.Replay(
+            this.props.wsConnection, 
+            this.props.gameInfo.gameID
+        )
+    }
     render() {
         if (!this.props.initialized){
             return(<div> loading... </div>);
@@ -70,6 +82,7 @@ class HighCardController extends React.Component {
                 <HighCardMenu 
                     {...this.props.gameInfo}
                     leaveGame={this.leaveGame}
+                    replay={this.replay}
                 />
                 <br/>
                 <HighCardTable 

@@ -1,6 +1,7 @@
 server/poker
 server/server
 client/js/bundle.js
+client/js/bundle.js.map
 client/node_modules
 client/semantic/dist
 client/semantic/tasks

@@ -1,3 +1,5 @@
+var webpack = require('webpack');
+
 module.exports = {
   entry: './js/index.jsx',
   output: {
@@ -16,5 +18,8 @@ module.exports = {
   },
   resolve: {
     extensions: ['', '.js', '.jsx'] 
-  }
+  },
+  plugins: [
+    new webpack.OldWatchingPlugin()
+  ],
 };

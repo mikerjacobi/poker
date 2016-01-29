@@ -27,24 +27,18 @@ func newHighCardController(db *mgo.Database, c *models.Comms) (HighCardControlle
 	return hc, nil
 }
 
-func (hc HighCardController) ReadMessages() {
+func (hcc HighCardController) ReadMessages() {
 	for {
-		m := <-hc.Queue
+		m := <-hcc.Queue
 		switch m.Type {
 		case models.HighCardStart:
-			game := models.Game{}
-			if err := json.Unmarshal(m.Raw, &game); err != nil {
-				logrus.Errorf("failed to unmarshal game in highcardstart")
-				continue
-			}
-			hcg, err := models.NewHighCardGame(game, hc.Comms)
-			if err != nil {
-				logrus.Errorf("failed to init high card game: %+v", err)
-				continue
-			}
-			hc.Games[game.ID] = hcg
-			if err = hc.Games[game.ID].Start(); err != nil {
+			if err := hcc.HandleStart(m.Raw); err != nil {
 				logrus.Errorf("failed to start high card game: %+v", err)
+				continue
+			}
+		case models.HighCardReplay:
+			if err := hcc.HandleReplay(m.Raw); err != nil {
+				logrus.Errorf("failed to replay high card game: %+v", err)
 				continue
 			}
 		default:
@@ -63,5 +57,37 @@ func (hcc HighCardController) CheckStartGame(game models.Game) error {
 	}
 	m := models.Message{Type: models.HighCardStart, Raw: gameJSON}
 	hcc.Queue <- m
+	return nil
+}
+
+func (hcc HighCardController) HandleStart(msg []byte) error {
+	game := models.Game{}
+	if err := json.Unmarshal(msg, &game); err != nil {
+		return fmt.Errorf("failed to unmarshal game in highcardstart")
+	}
+	hcg, err := models.NewHighCardGame(game, hcc.Comms)
+	if err != nil {
+		return fmt.Errorf("failed to init high card game: %+v", err)
+	}
+	hcc.Games[game.ID] = hcg
+	if err = hcc.Games[game.ID].Start(); err != nil {
+		return fmt.Errorf("failed to start high card game: %+v", err)
+	}
+	return nil
+}
+func (hcc HighCardController) HandleReplay(msg []byte) error {
+	game := models.HighCardMessage{}
+	if err := json.Unmarshal(msg, &game); err != nil {
+		return fmt.Errorf("failed to unmarshal game in handle replay")
+	}
+
+	hcg, ok := hcc.Games[game.Game.ID]
+	if !ok {
+		return fmt.Errorf("failed to load high card game.")
+	}
+
+	if err := hcg.PlayHand(); err != nil {
+		return fmt.Errorf("failed to start high card game: %+v", err)
+	}
 	return nil
 }

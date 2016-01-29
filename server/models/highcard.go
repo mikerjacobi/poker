@@ -33,11 +33,13 @@ type HighCard struct {
 */
 
 var (
-	//highcard actions
-	HighCardStart  = "HIGHCARDSTART"
-	HighCardUpdate = "HIGHCARDUPDATE"
+	//highcard client->server actions
+	HighCardStart   = "HIGHCARDSTART"
+	HighCardReplay  = "HIGHCARDREPLAY"
+	HighCardActions = []string{HighCardStart, HighCardReplay}
 
-	HighCardActions = []string{HighCardStart}
+	//highcard server->client actions
+	HighCardUpdate = "HIGHCARDUPDATE"
 )
 
 type HighCardMessage struct {
@@ -82,6 +84,30 @@ func (hcg *HighCardGame) Start() error {
 	h := hcg.NewHand()
 	c, _ := h.Deck.Deal()
 	logrus.Infof("card: %+v", c.Display)
+	msg := HighCardMessage{
+		Message: Message{Type: HighCardUpdate},
+		Game:    hcg.Game,
+		State: struct {
+			Card `json:"card"`
+		}{*c},
+	}
+	accountIDs := PlayerAccountIDs(hcg.Hand.Players)
+	if err := hcg.Comms.SendGroup(msg, accountIDs); err != nil {
+		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
+	}
+	//wait for action
+	//    receive action
+	//    validate action
+	//    analyze gamestate
+	// 		if endstate: goto deal
+	//    else: emit action update
+	return nil
+}
+
+func (hcg *HighCardGame) PlayHand() error {
+	//deal
+	h := hcg.NewHand()
+	c, _ := h.Deck.Deal()
 	msg := HighCardMessage{
 		Message: Message{Type: HighCardUpdate},
 		Game:    hcg.Game,

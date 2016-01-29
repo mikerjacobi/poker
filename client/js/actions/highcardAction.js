@@ -6,12 +6,10 @@ var Actions = require("./actions").Actions;
 //highcard actions
 exports.INIT = 'HIGHCARDINIT'
 exports.UPDATE = 'HIGHCARDUPDATE'
+exports.REPLAY = 'HIGHCARDREPLAY'
 
 //register highcard funcs
-Actions.Register(exports.UPDATE, function(dispatch, msg){
-  console.log(msg);
-  dispatch(msg);
-})
+Actions.Register(exports.UPDATE)
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}
@@ -36,5 +34,13 @@ exports.Initialize = function(dispatch, initialized, gameID){
         dispatch({type: Auth.LOGOUT});
         dispatch({type: Nav.GoToPath, path:"/auth"});
     })
+};
+
+exports.Replay = function(ws, gameID){
+    var action = {
+        type:exports.REPLAY,
+        gameInfo: {gameID:gameID}
+    };
+    ws.jsend(action);
 };
 
