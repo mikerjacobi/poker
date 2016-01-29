@@ -7,28 +7,16 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-var (
-	Increment = "INCREMENT"
-	Decrement = "DECREMENT"
-	Square    = "SQUARE"
-	Sqrt      = "SQRT"
-)
-
 var MathActions = []string{
-	Increment,
-	Decrement,
-	Square,
-	Sqrt,
-}
-
-type MathMessage struct {
-	Message
-	*models.Counter
+	models.Increment,
+	models.Decrement,
+	models.Square,
+	models.Sqrt,
 }
 
 type MathController struct {
 	DB    *mgo.Database
-	Queue chan Message
+	Queue chan models.Message
 	*models.Comms
 }
 
@@ -38,7 +26,7 @@ func newMathController(db *mgo.Database, c *models.Comms) (MathController, error
 		Comms: c,
 	}
 
-	mc.Queue = make(chan Message)
+	mc.Queue = make(chan models.Message)
 	go mc.ReadMessages()
 	return mc, nil
 }
@@ -47,13 +35,13 @@ func (mc MathController) ReadMessages() {
 	for {
 		m := <-mc.Queue
 		switch m.Type {
-		case Increment:
+		case models.Increment:
 			mc.HandleIncrement(m)
-		case Decrement:
+		case models.Decrement:
 			mc.HandleDecrement(m)
-		case Square:
+		case models.Square:
 			mc.HandleSquare(m)
-		case Sqrt:
+		case models.Sqrt:
 			mc.HandleSqrt(m)
 		default:
 			continue
@@ -61,64 +49,64 @@ func (mc MathController) ReadMessages() {
 	}
 }
 
-func (mc MathController) HandleIncrement(msg Message) {
+func (mc MathController) HandleIncrement(msg models.Message) {
 	log := logrus.WithFields(logrus.Fields{"func": "HandleIncrement"})
-	c, err := models.Increment(mc.DB)
+	c, err := models.IncrementCounter(mc.DB)
 	if err != nil {
 		e := "increment error "
 		sendError(mc.Comms, msg.WebSocketID, e)
-		logrus.Errorf("%s: %s", msg.Sender.AccountID, e+err.Error())
+		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
-	incrementMsg := MathMessage{Message: msg, Counter: c}
+	incrementMsg := models.MathMessage{Message: msg, Counter: c}
 	if err := mc.SendAll(incrementMsg); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}
 }
 
-func (mc MathController) HandleDecrement(msg Message) {
+func (mc MathController) HandleDecrement(msg models.Message) {
 	log := logrus.WithFields(logrus.Fields{"func": "HandleDecrement"})
-	c, err := models.Decrement(mc.DB)
+	c, err := models.DecrementCounter(mc.DB)
 	if err != nil {
 		e := "decrement error "
 		sendError(mc.Comms, msg.WebSocketID, e)
-		logrus.Errorf("%s: %s", msg.Sender.AccountID, e+err.Error())
+		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
-	decrementMsg := MathMessage{Message: msg, Counter: c}
+	decrementMsg := models.MathMessage{Message: msg, Counter: c}
 	if err := mc.SendAll(decrementMsg); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}
 }
 
-func (mc MathController) HandleSquare(msg Message) {
+func (mc MathController) HandleSquare(msg models.Message) {
 	log := logrus.WithFields(logrus.Fields{"func": "HandleSquare"})
-	c, err := models.Square(mc.DB)
+	c, err := models.SquareCounter(mc.DB)
 	if err != nil {
 		e := "square error "
 		sendError(mc.Comms, msg.WebSocketID, e)
-		logrus.Errorf("%s: %s", msg.Sender.AccountID, e+err.Error())
+		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
-	squareMsg := MathMessage{Message: msg, Counter: c}
+	squareMsg := models.MathMessage{Message: msg, Counter: c}
 	if err := mc.SendAll(squareMsg); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}
 }
 
-func (mc MathController) HandleSqrt(msg Message) {
+func (mc MathController) HandleSqrt(msg models.Message) {
 	log := logrus.WithFields(logrus.Fields{"func": "HandleSquare"})
-	c, err := models.Sqrt(mc.DB)
+	c, err := models.SqrtCounter(mc.DB)
 	if err != nil {
 		e := "sqrt error "
 		sendError(mc.Comms, msg.WebSocketID, e)
-		logrus.Errorf("%s: %s", msg.Sender.AccountID, e+err.Error())
+		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
 		return
 	}
-	squareMsg := MathMessage{Message: msg, Counter: c}
+	squareMsg := models.MathMessage{Message: msg, Counter: c}
 	if err := mc.SendAll(squareMsg); err != nil {
 		log.Errorf("sendall error: %+v", err)
 		return

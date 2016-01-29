@@ -8,20 +8,9 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-var (
-	//holdem actions
-	HoldemStart   = "HOLDEMSTART"
-	HoldemActions = []string{HoldemStart}
-)
-
-type HoldemMessage struct {
-	Message
-	models.Game `json:"game"`
-}
-
 type HoldemController struct {
 	DB    *mgo.Database
-	Queue chan Message
+	Queue chan models.Message
 	*models.Comms
 }
 
@@ -31,7 +20,7 @@ func newHoldemController(db *mgo.Database, c *models.Comms) (HoldemController, e
 		Comms: c,
 	}
 
-	hc.Queue = make(chan Message)
+	hc.Queue = make(chan models.Message)
 	go hc.ReadMessages()
 	return hc, nil
 }
@@ -40,7 +29,7 @@ func (hc HoldemController) ReadMessages() {
 	for {
 		m := <-hc.Queue
 		switch m.Type {
-		case GameStart:
+		case models.GameStart:
 			logrus.Infof("game start in holdemQ readmsgs")
 		default:
 			continue
@@ -55,7 +44,7 @@ func (hc HoldemController) CheckStartGame(game models.Game) error {
 	if err != nil {
 		return fmt.Errorf("holdem: jsonmarshal error")
 	}
-	m := Message{Type: HoldemStart, Raw: gameJSON}
+	m := models.Message{Type: models.HoldemStart, Raw: gameJSON}
 	hc.Queue <- m
 	return nil
 }

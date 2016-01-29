@@ -9,7 +9,8 @@ var getInitialState = function(){
             gameID:"",
             gameName:"",
             gameType:"",
-            players:[]
+            players:[],
+            hand: {}
         }
     };
 };
@@ -29,6 +30,9 @@ exports.HighCard = function(state, action) {
             gameType: action.game.gameType,
             players: action.game.players
         };
+        break;
+    case HighCard.RCVCARD:
+        newState.game.hand = action.hand;
         break;
     case Lobby.JOINALERT:
         newState.game = {

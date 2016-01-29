@@ -81,7 +81,7 @@ func HandleWebSocket(c *echo.Context) error {
 			return c.JSON(200, Response{true, nil})
 		}
 
-		if err := mh.HandleMessage([]byte(msg), wsID, ws, account); err != nil {
+		if err := mh.HandleMessage(c, []byte(msg), wsID, ws, account); err != nil {
 			logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
 			continue
 		}
@@ -89,28 +89,29 @@ func HandleWebSocket(c *echo.Context) error {
 	return nil
 }
 
-func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Conn, a models.Account) error {
-	m := Message{
-		WebSocketID: wsID,
-		WebSocket:   ws,
-		Sender:      a,
-		Raw:         msg,
+func (mh MessageHandler) HandleMessage(c *echo.Context, msg []byte, wsID string, ws *websocket.Conn, a models.Account) error {
+	m := models.Message{
+		WebSocketID:     wsID,
+		WebSocket:       ws,
+		SenderAccountID: a.AccountID,
+		Raw:             msg,
+		Context:         c,
 	}
 	if err := json.Unmarshal(msg, &m); err != nil {
 		return err
 	}
 
-	logrus.Infof("%s: %+s", m.Sender.Username, m.Type)
+	logrus.Infof("%s: %+s", a.Username, m.Type)
 	//logrus.Infof("%s: %+s %+v", m.Sender.Username, m.Type, string(msg))
 	if models.StringInSlice(m.Type, MathActions) {
 		mh.MathController.Queue <- m
-	} else if models.StringInSlice(m.Type, ConnectionActions) {
+	} else if models.StringInSlice(m.Type, models.ConnectionActions) {
 		mh.ConnectionController.Queue <- m
-	} else if models.StringInSlice(m.Type, LobbyActions) {
+	} else if models.StringInSlice(m.Type, models.LobbyActions) {
 		mh.LobbyController.Queue <- m
-	} else if models.StringInSlice(m.Type, HoldemActions) {
+	} else if models.StringInSlice(m.Type, models.HoldemActions) {
 		mh.HoldemController.Queue <- m
-	} else if models.StringInSlice(m.Type, HighCardActions) {
+	} else if models.StringInSlice(m.Type, models.HighCardActions) {
 		mh.HighCardController.Queue <- m
 	} else {
 		err := fmt.Sprintf("invalid action: %s", m.Type)

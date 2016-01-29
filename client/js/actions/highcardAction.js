@@ -5,6 +5,10 @@ var Actions = require("./actions").Actions;
 
 //highcard actions
 exports.INIT = 'HIGHCARDINIT'
+exports.RCVCARD = 'HIGHCARDRCVCARD'
+
+//register highcard funcs
+Actions.Register(exports.RCVCARD)
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}

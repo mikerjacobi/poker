@@ -10,6 +10,22 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	//lobby actions
+	GameCreate = "GAMECREATE"
+	GameStart  = "GAMESTART"
+	GameJoin   = "GAMEJOIN"
+
+	GameJoinAlert  = "GAMEJOINALERT"
+	GameLeave      = "GAMELEAVE"
+	GameLeaveAlert = "GAMELEAVEALERT"
+	LobbyActions   = []string{GameCreate, GameStart, GameJoin, GameJoinAlert, GameLeave, GameLeaveAlert}
+)
+
+type LobbyMessage struct {
+	Message
+	Game `json:"game"`
+}
 type GamePlayer struct {
 	AccountID string `json:"accountID" bson:"accountID"`
 	Name      string `json:"name" bson:"name"`
@@ -21,6 +37,14 @@ type Game struct {
 	State    string       `json:"state" bson:"state"`
 	Players  []GamePlayer `json:"players" bson:"players"`
 	GameType string       `json:"gameType" bson:"gameType"`
+}
+
+func PlayerAccountIDs(gps []GamePlayer) []string {
+	accountIDs := make([]string, len(gps))
+	for i, gp := range gps {
+		accountIDs[i] = gp.AccountID
+	}
+	return accountIDs
 }
 
 func LoadGame(db *mgo.Database, gameID, gameName string) (Game, error) {

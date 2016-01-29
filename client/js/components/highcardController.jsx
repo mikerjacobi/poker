@@ -31,7 +31,8 @@ class HighCardTable extends React.Component {
         return(<div> 
             <div className="ui three column stackable padded middle aligned centered color grid">
                 <div className="orange column"></div>
-                HIGHCARD place holder 
+                HIGHCARD place holder - 
+                {this.props.game.hand}
                 <div className="violet column"></div>
             </div>
         </div>);
