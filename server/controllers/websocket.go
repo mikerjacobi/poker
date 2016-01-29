@@ -20,6 +20,7 @@ type MessageHandler struct {
 	ConnectionController
 	LobbyController
 	HoldemController
+	HighCardController
 }
 
 func InitializeMessageHandler(db *mgo.Database) error {
@@ -36,17 +37,22 @@ func InitializeMessageHandler(db *mgo.Database) error {
 		return fmt.Errorf("failed to init math controller: %s", err.Error())
 	}
 
-	lc, err := newLobbyController(db, comms)
-	if err != nil {
-		return fmt.Errorf("failed to init lobby controller: %s", err.Error())
-	}
-
 	hc, err := newHoldemController(db, comms)
 	if err != nil {
 		return fmt.Errorf("failed to init holdem controller: %s", err.Error())
 	}
 
-	mh = MessageHandler{comms, mc, cc, lc, hc}
+	hcc, err := newHighCardController(db, comms)
+	if err != nil {
+		return fmt.Errorf("failed to init highcard controller: %s", err.Error())
+	}
+
+	lc, err := newLobbyController(db, comms, hc, hcc)
+	if err != nil {
+		return fmt.Errorf("failed to init lobby controller: %s", err.Error())
+	}
+
+	mh = MessageHandler{comms, mc, cc, lc, hc, hcc}
 	return nil
 }
 
@@ -104,6 +110,8 @@ func (mh MessageHandler) HandleMessage(msg []byte, wsID string, ws *websocket.Co
 		mh.LobbyController.Queue <- m
 	} else if models.StringInSlice(m.Type, HoldemActions) {
 		mh.HoldemController.Queue <- m
+	} else if models.StringInSlice(m.Type, HighCardActions) {
+		mh.HighCardController.Queue <- m
 	} else {
 		err := fmt.Sprintf("invalid action: %s", m.Type)
 		logrus.Errorf("%s: %s", a.AccountID, err)

@@ -2,11 +2,11 @@
 
 var React = require("react");
 var connect = require('react-redux').connect;
-var Holdem = require("../actions/holdemAction");
+var HighCard = require("../actions/highcardAction");
 var Lobby = require("../actions/lobbyAction");
 var Auth = require("../actions/authAction");
 
-class HoldemMenu extends React.Component {
+class HighCardMenu extends React.Component {
     render() {
         var players = [];
         for (var i=0; i<this.props.game.players.length; i++){
@@ -26,19 +26,19 @@ class HoldemMenu extends React.Component {
     };
 };
 
-class HoldemTable extends React.Component {
+class HighCardTable extends React.Component {
     render() {
         return(<div> 
             <div className="ui three column stackable padded middle aligned centered color grid">
                 <div className="orange column"></div>
-                HOLDEM place holder 
+                HIGHCARD place holder 
                 <div className="violet column"></div>
             </div>
         </div>);
     };
 };
 
-class HoldemController extends React.Component {
+class HighCardController extends React.Component {
     constructor(props){
         super(props);
         this.leaveGame = this.leaveGame.bind(this);
@@ -49,7 +49,8 @@ class HoldemController extends React.Component {
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
         if (!this.props.initialized){
-            Holdem.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
+            HighCard.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
+            return(<div> loading... </div>);
         }
     }
     leaveGame(){
@@ -66,12 +67,12 @@ class HoldemController extends React.Component {
         var game = {game:this.props.game};
         return (
             <div>
-                <HoldemMenu 
+                <HighCardMenu 
                     {...game}
                     leaveGame={this.leaveGame}
                 />
                 <br/>
-                <HoldemTable 
+                <HighCardTable 
                     {...game}
                 />
             </div>
@@ -81,10 +82,10 @@ class HoldemController extends React.Component {
 
 var dataMapper = function(state){
     return {
-        initialized: state.Holdem.initialized,
-        game: state.Holdem.game,
+        initialized: state.HighCard.initialized,
+        game: state.HighCard.game,
         wsConnection: state.Auth.wsConnection
     };
 }
 
-exports.HoldemController = connect(dataMapper)(HoldemController);
+exports.HighCardController = connect(dataMapper)(HighCardController);

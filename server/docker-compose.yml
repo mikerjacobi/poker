@@ -4,7 +4,7 @@ echo:
         - "8004:80"
     volumes:
         - /etc/ssl:/etc/ssl
-        - /var/tmp/jacobi/gopath:/gopath
+        - /home/jacobi/.gvm/pkgsets/go1.5/global:/gopath
     environment:
         GOPATH: /gopath
     working_dir: /gopath/src/github.com/mikerjacobi/poker/server

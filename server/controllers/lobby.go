@@ -14,9 +14,10 @@ import (
 
 var (
 	//lobby actions
-	GameCreate     = "GAMECREATE"
-	GameStart      = "GAMESTART"
-	GameJoin       = "GAMEJOIN"
+	GameCreate = "GAMECREATE"
+	GameStart  = "GAMESTART"
+	GameJoin   = "GAMEJOIN"
+
 	GameJoinAlert  = "GAMEJOINALERT"
 	GameLeave      = "GAMELEAVE"
 	GameLeaveAlert = "GAMELEAVEALERT"
@@ -40,13 +41,17 @@ type LobbyController struct {
 	DB    *mgo.Database
 	Queue chan Message
 	*models.Comms
+	HoldemController
+	HighCardController
 }
 
-func newLobbyController(db *mgo.Database, comms *models.Comms) (LobbyController, error) {
+func newLobbyController(db *mgo.Database, comms *models.Comms, hc HoldemController, hcc HighCardController) (LobbyController, error) {
 	GameTypes = strings.Split(viper.GetString("game_types"), ",")
 	lc := LobbyController{
-		DB:    db,
-		Comms: comms,
+		DB:                 db,
+		Comms:              comms,
+		HoldemController:   hc,
+		HighCardController: hcc,
 	}
 
 	lc.Queue = make(chan Message)
@@ -179,6 +184,22 @@ func (lc LobbyController) HandleJoinGame(msg Message) {
 		log.Errorf("sendall error: %+v", err)
 		return
 	}
+
+	//check to see if game is ready to be started
+	if err := lc.CheckStartGame(game); err != nil {
+		log.Warnf("game not started, continuing. %+v", err)
+	}
+}
+
+func (lc LobbyController) CheckStartGame(game models.Game) error {
+	if game.GameType == "holdem" {
+		return lc.HoldemController.CheckStartGame(game)
+	} else if game.GameType == "highcard" {
+		return lc.HighCardController.CheckStartGame(game)
+	} else {
+		return fmt.Errorf("game type: %s, is an invalid gametype", game.GameType)
+	}
+	return nil
 }
 
 func (lc LobbyController) HandleLeaveGame(msg Message) {

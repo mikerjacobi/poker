@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/mikerjacobi/poker/server/models"
 	"gopkg.in/mgo.v2"
@@ -44,4 +46,16 @@ func (hc HoldemController) ReadMessages() {
 			continue
 		}
 	}
+}
+func (hc HoldemController) CheckStartGame(game models.Game) error {
+	if len(game.Players) < 2 {
+		return fmt.Errorf("holdem: too few players")
+	}
+	gameJSON, err := json.Marshal(game)
+	if err != nil {
+		return fmt.Errorf("holdem: jsonmarshal error")
+	}
+	m := Message{Type: HoldemStart, Raw: gameJSON}
+	hc.Queue <- m
+	return nil
 }

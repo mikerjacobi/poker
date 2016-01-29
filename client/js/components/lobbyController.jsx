@@ -51,7 +51,7 @@ class JoinGameListing extends React.Component {
             players.push(this.props.game.players[i].name); 
         }
         return(
-            <tr onClick={this.props.joinGame.bind(this, this.props.game.gameID)}>
+            <tr onClick={this.props.joinGame.bind(this, this.props.game)}>
                 <td>{this.props.game.gameName}</td>
                 <td>{this.props.game.gameType}</td>
                 <td>{players.join(", ")}</td>
@@ -113,11 +113,11 @@ class LobbyController extends React.Component {
             createGameType
         );    
     }
-    joinGame(gameID){
+    joinGame(game){
         Lobby.Join(
             this.props.dispatch, 
             this.props.wsConnection,
-            gameID
+            game
         );    
     }
     render() {
