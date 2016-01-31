@@ -8,11 +8,23 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var (
+	Increment = "INCREMENT"
+	Decrement = "DECREMENT"
+	Square    = "SQUARE"
+	Sqrt      = "SQRT"
+)
+
+type MathMessage struct {
+	Message
+	*Counter
+}
+
 type Counter struct {
 	Count int `json:"count" bson:"count"`
 }
 
-func Increment(db *mgo.Database) (*Counter, error) {
+func IncrementCounter(db *mgo.Database) (*Counter, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
 		return nil, err
@@ -23,7 +35,7 @@ func Increment(db *mgo.Database) (*Counter, error) {
 	}
 	return c, nil
 }
-func Decrement(db *mgo.Database) (*Counter, error) {
+func DecrementCounter(db *mgo.Database) (*Counter, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
 		return nil, err
@@ -34,7 +46,7 @@ func Decrement(db *mgo.Database) (*Counter, error) {
 	}
 	return c, nil
 }
-func Square(db *mgo.Database) (*Counter, error) {
+func SquareCounter(db *mgo.Database) (*Counter, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
 		return nil, err
@@ -45,7 +57,7 @@ func Square(db *mgo.Database) (*Counter, error) {
 	}
 	return c, nil
 }
-func Sqrt(db *mgo.Database) (*Counter, error) {
+func SqrtCounter(db *mgo.Database) (*Counter, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
 		return nil, err

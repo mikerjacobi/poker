@@ -2,8 +2,8 @@ var reactCookie = require("react-cookie");
 var Nav = require("./actions/navAction");
 
 exports.Config = {
-    baseURL:"http://jacobra.com:8004",
-    wsURL:"ws://jacobra.com:8004/ws"
+    baseURL:"http://dev:8004",
+    wsURL:"ws://dev:8004/ws"
 };
 
 exports.RequireAuth = function(store) {
@@ -23,4 +23,3 @@ exports.SetPath = function(store) {
 exports.GetInitialState = function(){
     return {};
 };
-    

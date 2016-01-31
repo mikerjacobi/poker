@@ -14,7 +14,7 @@ exports.LEAVEALERT = 'GAMELEAVEALERT'
 
 Actions.Register(exports.CREATE);
 Actions.Register(exports.JOIN, function(dispatch, msg){
-    var gameRoute = "/holdem/" + msg.game.gameID;
+    var gameRoute = "/" + msg.game.gameType + "/" + msg.game.gameID;
     Nav.GoToPath(dispatch, gameRoute);
     dispatch(msg);
 });
@@ -35,10 +35,10 @@ exports.Create = function(dispatch, ws, gameName, gameType){
     };
     ws.jsend(action);
 };
-exports.Join = function(dispatch, ws, gameID){
+exports.Join = function(dispatch, ws, game){
     var action = {
         type:exports.JOIN,
-        game: {gameID: gameID}
+        game
     };
     ws.jsend(action);
 };

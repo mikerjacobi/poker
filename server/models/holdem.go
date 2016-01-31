@@ -26,3 +26,13 @@ type Holdem struct {
 	Hands []Hand `json:"players" bson:"players"`
 }
 */
+var (
+	//holdem actions
+	HoldemStart   = "HOLDEMSTART"
+	HoldemActions = []string{HoldemStart}
+)
+
+type HoldemMessage struct {
+	Message
+	Game `json:"game"`
+}

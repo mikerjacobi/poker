@@ -31,7 +31,7 @@ class HoldemTable extends React.Component {
         return(<div> 
             <div className="ui three column stackable padded middle aligned centered color grid">
                 <div className="orange column"></div>
-                game place holder 
+                HOLDEM place holder 
                 <div className="violet column"></div>
             </div>
         </div>);
@@ -45,10 +45,12 @@ class HoldemController extends React.Component {
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
-        Holdem.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
     }
     componentWillReceiveProps(nextProps) {
         this.props = nextProps;
+        if (!this.props.initialized){
+            Holdem.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
+        }
     }
     leaveGame(){
         Lobby.Leave(
@@ -59,7 +61,6 @@ class HoldemController extends React.Component {
     }
     render() {
         if (!this.props.initialized){
-            Holdem.Initialize(this.props.dispatch, this.props.initialized, this.props.params.gameid);
             return(<div> loading... </div>);
         }
         var game = {game:this.props.game};
