@@ -13,6 +13,7 @@ test/ghostdriver.log
 phantomjsdriver.log
 test/phantomjsdriver.log
 test/poker
+npm-debug.log
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

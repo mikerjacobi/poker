@@ -1,3 +1,4 @@
 Feature: Testing the Index page
     Scenario: Load the Index page
-        When the index page is loaded
+        Given user1 navigates to ?/index
+        When index is screenshot

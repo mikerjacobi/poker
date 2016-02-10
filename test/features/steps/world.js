@@ -23,11 +23,12 @@ function World() {
   var options = { 
       host:seleniumHub,
       //waitforTimeout:10000,
-      desiredCapabilities: { browserName: 'chrome'} 
+      desiredCapabilities: { browserName: 'chrome'}
   };
   this.client = WebDriverIO.remote(options);
   WebDriverCSS.init(this.client, {
       screenshotRoot: 'poker',
+      misMatchTolerance:0.001,
       api: pdiffHost + '/api/repositories/'
   });
 }
