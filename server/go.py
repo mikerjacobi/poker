@@ -9,3 +9,5 @@ cmd = "rm poker"
 os.system(cmd)
 cmd = "go build -o poker && docker-compose up -d"
 os.system(cmd)
+cmd = "docker exec server_mongo_1 mongo /fixtures/fixtures.js"
+os.system(cmd)

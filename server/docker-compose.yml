@@ -12,6 +12,8 @@ echo:
         - mongo
 mongo:
     image: mongo
+    volumes:
+      - ./fixtures:/fixtures
 selenium_hub:
   image: selenium/hub
 selenium_chrome:

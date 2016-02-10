@@ -1,28 +1,38 @@
-var WebDriverIO = require('webdriverio');
-var WebDriverCSS = require('webdrivercss');
-
-module.exports = function() {
-  this.World = World;
-};
-
 module.exports = function () {
-  var seleniumHub = "172.17.0.3";
-  var appHost = "http://172.17.0.6"
-  var pdiffHost = "http://dev:9000";
-  var options = { 
-      host:seleniumHub,
-      //waitforTimeout:10000,
-      desiredCapabilities: { browserName: 'chrome'} 
-  };
-  var client = WebDriverIO.remote(options);
-  WebDriverCSS.init(client, {
-      screenshotRoot: 'poker',
-      api: pdiffHost + '/api/repositories/'
-  });
+    this.Given(/^(.*) navigates to login$/, function(user, done){
+        this.user = this.fixtures.users[user];
+        this.url = this.appHost + "/#/auth";
+        //this.visit(this.url, done);
+        done();
+    });
+    this.Given(/^(.*) is screenshot/, 10000, function(ssName, done){
+        this.client.init().sync()
+            .url(this.url)
+            .webdrivercss(ssName, [{
+                name: 'element',
+                elem: '#root',
+                screenWidth: [640]
+            }], function(err,res) {
+                if (err != undefined){
+                  //console.log("err: "+err);
+                } 
+               //assert.ok(res.element[0].isWithinMisMatchTolerance);
+            }).sync()
+            //.end()
+            .call(done);
+    });
+    this.When(/^user logs in$/, function(done){
+        console.log(this.user);
+        done();
+    });
+    this.Given(/^user has a session cookie$/, function(done){
+        console.log("session cookie");
+        done();
+    });
 
-  this.Then(/^webdrivercss is demoed$/, function (done) {
-    var url = appHost + "/";
-    client
+  this.When(/^the index page is loaded$/, function (done) {
+    var url = this.appHost + "/";
+    this.client
         .init()
         .sync()
         .url(url)
@@ -42,7 +52,7 @@ module.exports = function () {
            //assert.ok(res.element[0].isWithinMisMatchTolerance);
         })
         .sync()
-        .end()
+        //.end()
         .call(done);
     });
 };

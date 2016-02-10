@@ -5,7 +5,7 @@ class IndexController extends React.Component {
     render(){
         return (
             <div>
-                testIndex page4
+                Index Page
             </div>
         )
     }
