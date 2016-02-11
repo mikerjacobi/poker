@@ -17,6 +17,11 @@ mongo:
 
 hub:
   image: selenium/hub
+  ports:
+    - "4444:4444"
+  environment:
+    GRID_TIMEOUT: 999999
+    GRID_BROWSER_TIMEOUT: 99999
 
 chrome:
   image: selenium/node-chrome

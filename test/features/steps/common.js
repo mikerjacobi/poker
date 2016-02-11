@@ -1,8 +1,9 @@
 var assert = require("assert");
+var timeoutDuration = 150000;
 
 module.exports = function () {
+    this.setDefaultTimeout(timeoutDuration)
     this.Before(function(scenario){
-        var timeoutDuration = 10000;
         this.client
             .init()
             .timeouts("page load",timeoutDuration)
