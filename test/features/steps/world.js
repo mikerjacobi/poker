@@ -17,12 +17,13 @@ function World() {
 
   this.fixtures = fixtures
   this.appHost = "http://"+getDockerIP("server_echo_1");
-  var seleniumHub = getDockerIP("server_selenium_hub_1");
-  var pdiffHost = "http://" + getDockerIP("server_pdiff_server_1") + ":9000";
+  this.appHost = "http://dev:8004";
+  var seleniumHub = getDockerIP("server_hub_1");
+  var pdiffHost = "http://" + getDockerIP("server_pdiff_1") + ":9000";
 
   var options = { 
       host:seleniumHub,
-      //waitforTimeout:10000,
+      //logLevel:"verbose",
       desiredCapabilities: { browserName: 'chrome'}
   };
   this.client = WebDriverIO.remote(options);

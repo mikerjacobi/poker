@@ -21,3 +21,8 @@ recompile javascript, from client/
 * `cd test`
 * `npm install`
 * `npm test`
+
+
+add local ip hostname to selenium nodes
+  from server_selenium_chrome_1: echo "192.168.8.88    dev" >> /etc/hosts
+
