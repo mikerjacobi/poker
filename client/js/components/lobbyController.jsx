@@ -26,16 +26,18 @@ class CreateGameForm extends React.Component {
             <div> 
                 <div className="ui input"><input 
                     type="text"
+                    id="gamename_textfield"
                     placeholder="gamename"
                     value={gameName}
                     onChange={this.changeGameName}/> </div>
-                <select className="ui selection dropdown" onChange={this.changeGameType}>
+                <select id="gametype_dropdown" className="ui selection dropdown" onChange={this.changeGameType}>
                     <option value="">Game Type</option>
                     <option value="holdem">Hold Em</option>
                     <option value="highcard">High Card</option>
                 </select>
                 <button 
                     className="ui primary button"
+                    id="create_game_button"
                     onClick={this.props.createGame.bind(this, gameName, gameType)}>
                     Create Game
                 </button>
@@ -51,7 +53,7 @@ class JoinGameListing extends React.Component {
             players.push(this.props.game.players[i].name); 
         }
         return(
-            <tr onClick={this.props.joinGame.bind(this, this.props.game)}>
+            <tr onClick={this.props.joinGame.bind(this, this.props.game)} id={this.props.id}>
                 <td>{this.props.game.gameName}</td>
                 <td>{this.props.game.gameType}</td>
                 <td>{players.join(", ")}</td>
@@ -66,9 +68,11 @@ class GameList extends React.Component {
         var keys = Object.keys(this.props.games);
         for (var i=0; i < keys.length; i++) {
             var key = keys[i]
+            var listingID = "game_listing_"+i;
             gameRows.push(
                 <JoinGameListing
                     key={this.props.games[key].gameID}
+                    id={listingID}
                     game={this.props.games[key]}
                     joinGame={this.props.joinGame}>
                 </JoinGameListing>
@@ -76,7 +80,7 @@ class GameList extends React.Component {
         }
 
         return(
-            <table className="ui inverted selectable single line table">
+            <table id="game_listings" className="ui inverted selectable single line table">
                 <thead>
                     <tr>
                         <th>Game Name</th>
