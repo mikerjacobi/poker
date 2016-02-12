@@ -19,6 +19,7 @@ class HighCardMenu extends React.Component {
                  <br/><br/>
                 <button 
                     className="ui black tiny button"
+                    id="replay_game_button"
                     onClick={this.props.replay}>
                     Replay
                 </button>
@@ -38,7 +39,7 @@ class HighCardTable extends React.Component {
         if (this.props && this.props.card){
             card = this.props.card.display;
         }
-        return(<div> 
+        return(<div id="game_div"> 
                 {card}
         </div>);
     };

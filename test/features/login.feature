@@ -1,9 +1,8 @@
 Feature: Testing Login
   Scenario: Successfully Login
-    Given user navigates to login
+    Given user1 navigates to login
     And login is screenshot
-    And user1 logs in
-    When we wait .5 seconds
-    Then user has a session cookie
+    And user1 logs in with cli1
+    Then user1 has a session cookie
 
 

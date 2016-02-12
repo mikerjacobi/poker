@@ -1,13 +1,11 @@
 Feature: Testing Join Game
   Scenario: Successfully Join Game
-    Given user1 logs in
-    And there are no games
+    Given there are no games
+    And user1 logs in with cli1
     And there is a highcard game
-    And we wait .5 seconds
-    And user has a session cookie
-    When user navigates to lobby
-    And user joins game
-    And we wait .5 seconds
+    And user1 has a session cookie
+    When user1 navigates to lobby
+    And user1 joins game
     And highcard is screenshot
 
 

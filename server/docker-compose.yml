@@ -30,6 +30,13 @@ chrome:
   extra_hosts:
     dev: 192.168.8.88
 
+chrome2:
+  image: selenium/node-chrome
+  links:
+    - hub:hub
+  extra_hosts:
+    dev: 192.168.8.88
+
 pdiff:
   image: pdiff
   ports:
