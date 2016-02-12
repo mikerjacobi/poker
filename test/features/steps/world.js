@@ -10,29 +10,31 @@ function getDockerIP(container){
 }
 
 function World() {
-    this.browser = new zombie(); // this.browser will be available in step definitions
-
-    this.visit = function (url, callback) {
-      this.browser.visit(url, callback);
-    };
 
     this.fixtures = fixtures
     this.appHost = "http://dev:8004";
     var seleniumHub = getDockerIP("server_hub_1");
     var pdiffHost = "http://" + getDockerIP("server_pdiff_1") + ":9000";
-
-    var options = { 
-        host:seleniumHub,
+    var driverOptions = { 
         //logLevel:"verbose",
+        host:seleniumHub,
         desiredCapabilities: { browserName: 'chrome'}
     };
-    this.client = WebDriverIO.remote(options);
-    WebDriverCSS.init(this.client, {
+    var cssOptions = {
         screenshotRoot: 'poker',
         misMatchTolerance:0.001,
         api: pdiffHost + '/api/repositories/'
-    });
-        
+    };
+
+    //this.browser = WebDriverIO.multiremote({
+    //    chrome1: driverOptions,
+    //    chrome2: driverOptions
+    //});
+    this.client = WebDriverIO.remote(driverOptions);
+    WebDriverCSS.init(this.client, cssOptions);
+    //WebDriverCSS.init(this.browser, cssOptions);
+       
+    //database init 
     var table = "echo" 
     var dbconn = getDockerIP("server_mongo_1") + "/" + table;
     this.db = require('monk')(dbconn);
