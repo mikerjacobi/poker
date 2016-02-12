@@ -7,8 +7,12 @@ client/semantic/dist
 client/semantic/tasks
 test/testenv
 test/build
+test/node_modules
 *pyc
 test/ghostdriver.log
+phantomjsdriver.log
+test/phantomjsdriver.log
+test/poker
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
