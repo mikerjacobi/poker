@@ -12,16 +12,29 @@ echo:
         - mongo
 mongo:
     image: mongo
-selenium_hub:
+    volumes:
+      - ./fixtures:/fixtures
+
+hub:
   image: selenium/hub
-selenium_chrome:
+  ports:
+    - "4444:4444"
+  environment:
+    GRID_TIMEOUT: 999999
+    GRID_BROWSER_TIMEOUT: 99999
+
+chrome:
   image: selenium/node-chrome
   links:
-    - selenium_hub:hub
-pdiff_server:
-  image: aeharding/webdrivercss-adminpanel
+    - hub:hub
+  extra_hosts:
+    dev: 192.168.8.88
+
+pdiff:
+  image: pdiff
   ports:
     - "9000:9000"
+
 #dpxdt:
 #    image: dpxdt
 #    ports:

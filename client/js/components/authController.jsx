@@ -36,20 +36,22 @@ class LoginCreateForm extends React.Component{
             data = <div>
                         <div className="ui input"><input 
                             type="text"
+                            id="username_textfield"
                             placeholder="username"
                             value={username} 
                             onChange={this.changeUsername}/>
                         </div>
-                    
                         <br/>
                         <div className="ui input"><input 
                             type="password"
+                            id="password_textfield"
                             placeholder="password"
                             value={password} 
                             onChange={this.changePassword}/>
                         </div>
                         <button 
                             className="ui primary button"
+                            id="login_button"
                             onClick={this.props.login.bind(this, username, password)}> 
                             Login 
                         </button>    
@@ -57,12 +59,14 @@ class LoginCreateForm extends React.Component{
                         <br/>
                         <div className="ui input"><input 
                             type="password"
+                            id="repeat_textfield"
                             placeholder="password repeat"
                             value={repeat} 
                             onChange={this.changeRepeat}/>
                         </div>
                         <button     
                             className="ui button"
+                            id="create_account_button"
                             onClick={this.props.createAccount.bind(this, username, password, repeat)}> 
                             Create Account 
                         </button>
