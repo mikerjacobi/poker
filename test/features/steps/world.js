@@ -4,7 +4,7 @@ var exec = require('child_process').execSync;
 var zombie = require('zombie');
 var fixtures = require("../../../server/fixtures/data");
 var mongo = require("mongodb").MongoClient;
-var webdrivercssDir = "poker-tests/"
+var webdrivercssDir = "poker"
 
 function getDockerIP(container){
   return String(exec('docker inspect '+container+' | grep IPA | tail -n1 | awk \'{print $2\'} | cut -d\'"\' -f2')).replace("\n","");

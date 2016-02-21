@@ -1,7 +1,7 @@
 var assert = require("assert");
 var timeoutDuration = 15000;
 var exec = require('child_process').execSync;
-var webdrivercssDir = "poker-tests/"
+var webdrivercssDir = "poker/"
 
 function DiffScreenShots(ss1, ss2){
     var cmd = "compare -metric MAE " + webdrivercssDir + ss1 + 
@@ -30,10 +30,20 @@ module.exports = function () {
                 .timeouts("implicit",timeoutDuration)
                 .timeouts("script",timeoutDuration)
                 .on('error', function(e) {
-                    var msg = "ERROR: "+e.body.value.class+" >>> "+e.body.value.message
-                    console.log(msg);
+                    try{
+                        var msg = "ERROR: "+e.body.value.class+" >>> "+e.body.value.message
+                        console.log(msg);
+                    } catch(err){
+                        //pass
+                    }
                 })
         }
+    });
+    this.AfterFeatures(function(event, callback){
+        //var cmd = "docker rm -f server_chrome_1";
+        //exec(cmd);
+        //var cmd = "cd ../server && docker-compose up -d && cd ../test";
+        //exec(cmd);
     });
     this.After(function(scenario){
         this.db.close();
@@ -60,6 +70,7 @@ module.exports = function () {
 
         this[user].client
             .url(this.appHost + uri)
+            .pause(200)
             .call(done);
     });
 
