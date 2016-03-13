@@ -42,7 +42,7 @@ func SendError(accountID string, errMsg string) {
 		Type  string `json:"type"`
 		Error string `json:"error"`
 	}{
-		Type:  "SERVERERROR",
+		Type:  "/error",
 		Error: errMsg,
 	}
 

@@ -4,30 +4,26 @@ var Nav = require("./navAction");
 var Actions = require("./actions").Actions;
 
 //lobby actions
-exports.INIT = 'LOBBYINIT'
-exports.CREATE = 'GAMECREATE'
-exports.START = 'GAMESTART'
-exports.JOIN = 'GAMEJOIN'
-exports.JOINALERT = 'GAMEJOINALERT'
-exports.LEAVE = 'GAMELEAVE'
-exports.LEAVEALERT = 'GAMELEAVEALERT'
+exports.INIT = '/lobby/init'
+exports.CREATE = '/game/create'
+exports.JOIN = '/game/join'
+exports.JOINALERT = '/game/join/alert'
+exports.LEAVE = '/game/leave'
+exports.LEAVEALERT = '/game/leave/alert'
 
+//lobby registers
 Actions.Register(exports.CREATE);
 Actions.Register(exports.JOIN, function(dispatch, msg){
     var gameRoute = "/" + msg.game.gameType + "/" + msg.game.gameID;
     Nav.GoToPath(dispatch, gameRoute);
     dispatch(msg);
 });
-Actions.Register(exports.JOINALERT, function(dispatch, msg){
-    dispatch(msg);
-});
+Actions.Register(exports.JOINALERT)
 Actions.Register(exports.LEAVE, function(dispatch, msg){
     Nav.GoToPath(dispatch, "/lobby");
 });
-Actions.Register(exports.LEAVEALERT, function(dispatch, msg){
-    dispatch(msg);
-});
-        
+Actions.Register(exports.LEAVEALERT)
+
 exports.Create = function(dispatch, ws, gameName, gameType){
     var action = {
         type:exports.CREATE,

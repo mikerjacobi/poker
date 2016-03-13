@@ -4,11 +4,13 @@ var Nav = require("./navAction");
 var Actions = require("./actions").Actions;
 
 //math actions
-exports.INCREMENT = 'INCREMENT'
-exports.DECREMENT = 'DECREMENT'
-exports.SQUARE = 'SQUARE'
-exports.SQRT = 'SQRT'
-exports.INIT = 'MATHINIT'
+exports.INCREMENT = '/math/increment'
+exports.DECREMENT = '/math/decrement'
+exports.SQUARE = '/math/square'
+exports.SQRT = '/math/sqrt'
+exports.INIT = '/math/init'
+
+//math registers
 Actions.Register(exports.INCREMENT);
 Actions.Register(exports.DECREMENT);
 Actions.Register(exports.SQUARE);

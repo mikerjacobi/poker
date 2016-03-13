@@ -50,21 +50,17 @@ func InitializeHighCardManager(db *mgo.Database) {
 func CreateHighCardGame(game *HighCardGame) {
 	highCardManager.Games[game.ID] = game
 }
-func GetHighCardGame(gameID string) (*HighCardGame, bool) {
+func GetHighCardGame(db *mgo.Database, gameID string) (*HighCardGame, bool) {
 	hcg, ok := highCardManager.Games[gameID]
-	return hcg, ok
-}
-
-var (
-	//highcard server->client actions
-	HighCardUpdate = "HIGHCARDUPDATE"
-	HighCardError  = "HIGHCARDERROR"
-)
-
-type HighCardMessage struct {
-	Message
-	Game  `json:"gameInfo"`
-	State interface{} `json:"gameState"`
+	if !ok {
+		game, err := LoadGame(db, gameID, "")
+		if err != nil {
+			return nil, false
+		}
+		hcg = ToHighCardGame(game)
+		CreateHighCardGame(hcg)
+	}
+	return hcg, true
 }
 
 type Hand struct {
@@ -78,12 +74,12 @@ type HighCardGame struct {
 	*Hand
 }
 
-func ToHighCardGame(game Game) (*HighCardGame, error) {
+func ToHighCardGame(game Game) *HighCardGame {
 	hcg := HighCardGame{
 		Game:  game,
 		Hands: []*Hand{},
 	}
-	return &hcg, nil
+	return &hcg
 }
 
 func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
@@ -106,31 +102,21 @@ func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
 	return &h, nil
 }
 
-func (hcg *HighCardGame) PlayHand(db *mgo.Database) error {
+func (hcg *HighCardGame) PlayHand(db *mgo.Database) (*Card, error) {
 	//deal
 	hand, err := hcg.NewHand(db)
 	if err != nil {
-		return fmt.Errorf("failed to create new highcard hand: %+v", err)
+		return nil, fmt.Errorf("failed to create new highcard hand: %+v", err)
 	}
 	card, _ := hand.Deck.Deal()
-	msg := HighCardMessage{
-		Message: Message{Type: HighCardUpdate},
-		Game:    hcg.Game,
-		State: struct {
-			Card `json:"card"`
-		}{*card},
-	}
 
-	if err := SendGame(db, hcg.Game.ID, msg); err != nil {
-		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
-	}
 	//wait for action
 	//    receive action
 	//    validate action
 	//    analyze gamestate
 	// 		if endstate: goto deal
 	//    else: emit action update
-	return nil
+	return card, nil
 }
 
 func (hcg *HighCardGame) HighCardPlayable(db *mgo.Database) bool {

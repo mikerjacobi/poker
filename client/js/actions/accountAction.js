@@ -3,9 +3,9 @@ var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
 require("whatwg-fetch");
 
-exports.FETCH = 'FETCH';
-exports.FETCHED = 'FETCHED';
-exports.CREATE = 'CREATEACCOUNT';
+exports.FETCH = '/account/fetch';
+exports.FETCHED = '/account/fetched';
+exports.CREATE = '/account/create';
 
 exports.Create = function(dispatch, username, password, repeat){
     dispatch({type:exports.FETCH});

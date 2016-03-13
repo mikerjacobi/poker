@@ -8,11 +8,11 @@ var Account = require("./accountAction")
 require("whatwg-fetch");
 
 //auth actions
-exports.LOGIN = 'LOGIN';
-exports.LOGOUT = 'LOGOUT';
-exports.WSCONNECT = 'WSCONNECT';
-exports.WSDISCONNECT = 'WSDISCONNECT';
-exports.SERVERERROR = 'SERVERERROR';
+exports.LOGIN = '/login';
+exports.LOGOUT = '/logout';
+exports.WSCONNECT = '/ws/connect';
+exports.WSDISCONNECT = '/ws/disconnect';
+exports.SERVERERROR = '/error';
 
 Actions.Register(exports.WSCONNECT);
 Actions.Register(exports.WSDISCONNECT);

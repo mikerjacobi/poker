@@ -10,9 +10,21 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+const (
+	gameJoin       = "/game/join"
+	gameJoinAlert  = "/game/join/alert"
+	gameLeave      = "/game/leave"
+	gameLeaveAlert = "/game/leave/alert"
+)
+
 type LobbyMessage struct {
 	Type        string `json:"type"`
 	models.Game `json:"game"`
+}
+
+type GameMessage struct {
+	Type   string `json:"type"`
+	GameID string `json:"gameID"`
 }
 
 func newLobbyMessage(action string, game models.Game) LobbyMessage {
@@ -122,12 +134,12 @@ func HandleJoinGame(msg models.Message) error {
 	}
 
 	//notify all clients that someone joined this game
-	if err := models.SendAll(newLobbyMessage("GAMEJOINALERT", game)); err != nil {
+	if err := models.SendAll(newLobbyMessage(gameJoinAlert, game)); err != nil {
 		return fmt.Errorf("sendall error in handleJoinGame: %+v", err)
 	}
 
 	//notify this client to enter the game; this ultimately redirs the user into the game
-	if err := models.Send(msg.Sender.AccountID, newLobbyMessage("GAMEJOIN", game)); err != nil {
+	if err := models.Send(msg.Sender.AccountID, newLobbyMessage(gameJoin, game)); err != nil {
 		return fmt.Errorf("send error in handleJoinGame: %+v", err)
 	}
 
@@ -145,12 +157,12 @@ func HandleLeaveGame(msg models.Message) error {
 	}
 
 	//notify all clients that someone left this game
-	if err := models.SendAll(newLobbyMessage("GAMELEAVEALERT", game)); err != nil {
+	if err := models.SendAll(newLobbyMessage(gameLeaveAlert, game)); err != nil {
 		return fmt.Errorf("sendall error in handleLeaveGame: %+v", err)
 	}
 
 	//notify this client to leave the game
-	if err := models.Send(msg.Sender.AccountID, newLobbyMessage("GAMELEAVE", game)); err != nil {
+	if err := models.Send(msg.Sender.AccountID, newLobbyMessage(gameLeave, game)); err != nil {
 		return fmt.Errorf("send error in handleLeaveGame: %+v", err)
 	}
 	return nil

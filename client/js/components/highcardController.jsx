@@ -19,9 +19,9 @@ class HighCardMenu extends React.Component {
                  <br/><br/>
                 <button 
                     className="ui black tiny button"
-                    id="replay_game_button"
-                    onClick={this.props.replay}>
-                    Replay
+                    id="play_game_button"
+                    onClick={this.props.play}>
+                    Play
                 </button>
                 <button 
                     className="ui black tiny button"
@@ -55,7 +55,7 @@ class HighCardController extends React.Component {
     constructor(props){
         super(props);
         this.leaveGame = this.leaveGame.bind(this);
-        this.replay = this.replay.bind(this);
+        this.play = this.play.bind(this);
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
@@ -74,8 +74,8 @@ class HighCardController extends React.Component {
             this.props.params.gameid
         );    
     }
-    replay(){
-        HighCard.Replay(
+    play(){
+        HighCard.Play(
             this.props.wsConnection, 
             this.props.gameInfo.gameID
         )
@@ -89,7 +89,7 @@ class HighCardController extends React.Component {
                 <HighCardMenu 
                     {...this.props.gameInfo}
                     leaveGame={this.leaveGame}
-                    replay={this.replay}
+                    play={this.play}
                 />
                 <br/>
                 <HighCardTable 

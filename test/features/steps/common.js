@@ -159,9 +159,9 @@ module.exports = function () {
             }, 1000)
         });
     });
-    this.When(/^(.*) replays game$/, function(user, done){
+    this.When(/^(.*) plays game$/, function(user, done){
         this[user].client
-            .click("#replay_game_button")
+            .click("#play_game_button")
             .pause(500)
             .call(done);
     });

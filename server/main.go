@@ -87,19 +87,19 @@ func main() {
 	}
 	auth.WebSocket("/ws", mh.HandleWebSocket)
 	mh.Handle("/default", controllers.DefaultActionHandler)
-	mh.Handle("WSCONNECT", controllers.HandleWebSocketConnect)
-	mh.Handle("WSDISCONNECT", controllers.HandleWebSocketDisconnect)
+	mh.Handle("/ws/connect", controllers.HandleWebSocketConnect)
+	mh.Handle("/ws/disconnect", controllers.HandleWebSocketDisconnect)
 
-	mh.Handle("INCREMENT", controllers.HandleIncrement)
-	mh.Handle("DECREMENT", controllers.HandleDecrement)
-	mh.Handle("SQUARE", controllers.HandleSquare)
-	mh.Handle("SQRT", controllers.HandleSqrt)
+	mh.Handle("/math/increment", controllers.HandleIncrement)
+	mh.Handle("/math/decrement", controllers.HandleDecrement)
+	mh.Handle("/math/square", controllers.HandleSquare)
+	mh.Handle("/math/sqrt", controllers.HandleSqrt)
 
-	mh.Handle("GAMECREATE", controllers.HandleCreateGame)
-	mh.Handle("GAMEJOIN", controllers.HandleJoinGame)
-	mh.Handle("GAMELEAVE", controllers.HandleLeaveGame)
+	mh.Handle("/game/create", controllers.HandleCreateGame)
+	mh.Handle("/game/join", controllers.HandleJoinGame)
+	mh.Handle("/game/leave", controllers.HandleLeaveGame)
 
-	mh.Handle("HIGHCARDREPLAY", controllers.HandleReplay)
+	mh.Handle("/highcard/play", controllers.HandlePlay)
 
 	//start server
 	logrus.Info("starting server")

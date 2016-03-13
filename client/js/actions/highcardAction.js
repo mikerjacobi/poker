@@ -4,14 +4,12 @@ var Nav = require("./navAction");
 var Actions = require("./actions").Actions;
 
 //highcard actions
-exports.INIT = 'HIGHCARDINIT'
-exports.UPDATE = 'HIGHCARDUPDATE'
-exports.REPLAY = 'HIGHCARDREPLAY'
-exports.ERROR = 'HIGHCARDERROR'
+exports.INIT = '/highcard/init'
+exports.UPDATE = '/highcard/update'
+exports.PLAY = '/highcard/play'
 
 //register highcard funcs
 Actions.Register(exports.UPDATE)
-Actions.Register(exports.ERROR)
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}
@@ -38,10 +36,10 @@ exports.Initialize = function(dispatch, initialized, gameID){
     })
 };
 
-exports.Replay = function(ws, gameID){
+exports.Play = function(ws, gameID){
     var action = {
-        type:exports.REPLAY,
-        gameInfo: {gameID:gameID}
+        type:exports.PLAY,
+        gameID:gameID
     };
     ws.jsend(action);
 };

@@ -8,39 +8,43 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-func HandleStart(msg models.Message) error {
-	game := models.Game{}
-	db := msg.Context.Get("db").(*mgo.Database)
-	if err := json.Unmarshal(msg.Raw, &game); err != nil {
-		return fmt.Errorf("failed to unmarshal game in highcardstart")
-	}
+const (
+	highCardUpdate = "/highcard/update"
+)
 
-	hcg, err := models.ToHighCardGame(game)
-	if err != nil {
-		return fmt.Errorf("failed to init high card game: %+v", err)
-	}
-	models.CreateHighCardGame(hcg)
-
-	if err := hcg.PlayHand(db); err != nil {
-		return fmt.Errorf("failed to start high card game: %+v", err)
-	}
-	return nil
+type HighCardMessage struct {
+	Type        string `json:"type"`
+	models.Game `json:"gameInfo"`
+	State       interface{} `json:"gameState"`
 }
 
-func HandleReplay(msg models.Message) error {
+func HandlePlay(msg models.Message) error {
 	db := msg.Context.Get("db").(*mgo.Database)
-	m := models.HighCardMessage{}
-	if err := json.Unmarshal(msg.Raw, &m); err != nil {
-		return fmt.Errorf("failed to unmarshal game in handle replay")
+	gm := GameMessage{}
+	if err := json.Unmarshal(msg.Raw, &gm); err != nil {
+		return fmt.Errorf("failed to unmarshal game in handle play")
 	}
 
-	hcg, ok := models.GetHighCardGame(m.Game.ID)
+	hcg, ok := models.GetHighCardGame(db, gm.GameID)
 	if !ok {
 		return fmt.Errorf("failed to load high card game.  either not started or ended")
 	}
 
-	if err := hcg.PlayHand(db); err != nil {
+	card, err := hcg.PlayHand(db)
+	if err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
+
+	hcMsg := HighCardMessage{
+		Type: highCardUpdate,
+		Game: hcg.Game,
+		State: struct {
+			models.Card `json:"card"`
+		}{*card},
+	}
+	if err := models.SendGame(db, hcg.Game.ID, hcMsg); err != nil {
+		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
+	}
+
 	return nil
 }

@@ -1,9 +1,9 @@
 "use strict"
 
-exports.NEXTPATH = 'NAVNEXTPATH';
-exports.GOPATH = 'NAVGOPATH';
-exports.GOTOPATH = 'NAVGOTOPATH';
-exports.SETHISTORY = 'NAVSETHISTORY';
+exports.NEXTPATH = '/nav/nextpath';
+exports.GOPATH = '/nav/gopath';
+exports.GOTOPATH = '/nav/gotopath';
+exports.SETHISTORY = '/nav/sethistory';
 
 exports.SetHistory = function(dispatch, history){
     var action = {

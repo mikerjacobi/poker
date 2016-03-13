@@ -4,9 +4,9 @@ var Config = require("../common").Config;
 require("whatwg-fetch");
 
 //async actions
-exports.GET = 'ASYNCGET'
-exports.FETCH = 'ASYNCFETCH'
-exports.FETCHED = 'ASYNCFETCHED'
+exports.GET = '/async/get'
+exports.FETCH = '/async/fetch'
+exports.FETCHED = '/async/fetched'
 
 var Get = function(dispatch, url, timeout){
     var action = {type: exports.GET};

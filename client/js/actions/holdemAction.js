@@ -4,7 +4,7 @@ var Nav = require("./navAction");
 var Actions = require("./actions").Actions;
 
 //holdem actions
-exports.INIT = 'HOLDEMINIT'
+exports.INIT = '/holdem/init'
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}
