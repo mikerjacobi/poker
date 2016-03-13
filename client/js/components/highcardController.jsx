@@ -35,11 +35,16 @@ class HighCardMenu extends React.Component {
 
 class HighCardTable extends React.Component {
     render() {
+        var error = "";
+        if (this.props && this.props.error){
+            error = this.props.error;
+        }
         var card = "";
         if (this.props && this.props.card){
             card = this.props.card.display;
         }
         return(<div id="game_div"> 
+                {error}
                 {card}
         </div>);
     };

@@ -3,92 +3,59 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Sirupsen/logrus"
 	"github.com/mikerjacobi/poker/server/models"
 	"gopkg.in/mgo.v2"
 )
 
-type HighCardController struct {
-	DB    *mgo.Database
-	Queue chan models.Message
-	*models.Comms
-	Games map[string]*models.HighCardGame
-}
-
-func newHighCardController(db *mgo.Database, c *models.Comms) (HighCardController, error) {
-	hc := HighCardController{
-		DB:    db,
-		Comms: c,
-		Games: map[string]*models.HighCardGame{},
+func CheckStartHighCard(game models.Game) error {
+	hcg, err := models.ToHighCardGame(game)
+	if err != nil {
+		return fmt.Errorf("failed to init high card game: %+v", err)
 	}
 
-	hc.Queue = make(chan models.Message)
-	go hc.ReadMessages()
-	return hc, nil
-}
-
-func (hcc HighCardController) ReadMessages() {
-	for {
-		m := <-hcc.Queue
-		switch m.Type {
-		case models.HighCardStart:
-			if err := hcc.HandleStart(m.Raw); err != nil {
-				logrus.Errorf("failed to start high card game: %+v", err)
-				continue
-			}
-		case models.HighCardReplay:
-			if err := hcc.HandleReplay(m.Raw); err != nil {
-				logrus.Errorf("failed to replay high card game: %+v", err)
-				continue
-			}
-		default:
-			continue
-		}
-	}
-}
-
-func (hcc HighCardController) CheckStartGame(game models.Game) error {
-	if !models.HighCardPlayable(game) {
+	if !hcg.HighCardPlayable() {
 		return fmt.Errorf("highcard game not in playable state")
 	}
 	gameJSON, err := json.Marshal(game)
 	if err != nil {
 		return fmt.Errorf("highcard: jsonmarshal error")
 	}
-	m := models.Message{Type: models.HighCardStart, Raw: gameJSON}
-	hcc.Queue <- m
+	_ = models.Message{Type: models.HighCardStart, Raw: gameJSON}
 	return nil
 }
 
-func (hcc HighCardController) HandleStart(msg []byte) error {
+func HandleStart(msg models.Message) error {
 	game := models.Game{}
-	if err := json.Unmarshal(msg, &game); err != nil {
+	db := msg.Context.Get("db").(*mgo.Database)
+	if err := json.Unmarshal(msg.Raw, &game); err != nil {
 		return fmt.Errorf("failed to unmarshal game in highcardstart")
 	}
 
-	hcg, err := models.NewHighCardGame(game, hcc.Comms)
+	hcg, err := models.ToHighCardGame(game)
 	if err != nil {
 		return fmt.Errorf("failed to init high card game: %+v", err)
 	}
-	hcc.Games[game.ID] = hcg
+	models.CreateHighCardGame(hcg)
 
-	if err := hcg.PlayHand(hcc.DB); err != nil {
+	if err := hcg.PlayHand(db); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
 	return nil
 }
-func (hcc HighCardController) HandleReplay(msg []byte) error {
+
+func HandleReplay(msg models.Message) error {
+	db := msg.Context.Get("db").(*mgo.Database)
 	game := models.HighCardMessage{}
-	if err := json.Unmarshal(msg, &game); err != nil {
+	if err := json.Unmarshal(msg.Raw, &game); err != nil {
 		return fmt.Errorf("failed to unmarshal game in handle replay")
 	}
 
-	hcg, ok := hcc.Games[game.Game.ID]
+	hcg, ok := models.GetHighCardGame(game.Game.ID)
 	if !ok {
-		return fmt.Errorf("failed to load high card game.")
+		return fmt.Errorf("failed to load high card game.  either not started or ended")
 	}
 
-	if err := hcg.PlayHand(hcc.DB); err != nil {
+	if err := hcg.PlayHand(db); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
 	return nil

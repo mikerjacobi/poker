@@ -12,7 +12,8 @@ var getInitialState = function(){
             players:[],
         },
         gameState: {
-            card: {}
+            card: {},
+            error: ""
         }
     };
 };
@@ -22,6 +23,7 @@ exports.HighCard = function(state, action) {
         state = getInitialState();
     };
     var newState = state
+    newState.error =  "";
     switch (action.type) {
     case HighCard.INIT:
         if (!state.initialized){
@@ -31,6 +33,9 @@ exports.HighCard = function(state, action) {
     case HighCard.UPDATE:
         newState = action;
         newState.initialized = true;
+        break;
+    case HighCard.ERROR:
+        newState = action;
         break;
     case Lobby.JOINALERT:
         newState = action;

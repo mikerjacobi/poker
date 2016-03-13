@@ -22,13 +22,10 @@ var (
 	LobbyActions   = []string{GameCreate, GameStart, GameJoin, GameJoinAlert, GameLeave, GameLeaveAlert}
 )
 
-type LobbyMessage struct {
-	Message
-	Game `json:"game"`
-}
 type GamePlayer struct {
 	AccountID string `json:"accountID" bson:"accountID"`
 	Name      string `json:"name" bson:"name"`
+	Balance   int    `json:"balance" bson:"balance"`
 }
 
 type Game struct {
@@ -96,6 +93,19 @@ func CreateGame(db *mgo.Database, name, gameType string) (Game, error) {
 	if err := games.Insert(g); err != nil {
 		return Game{}, fmt.Errorf("failed to insert: %s", err)
 	}
+
+	if g.GameType == "holdem" {
+		//return CheckStartHoldem(game)
+	} else if g.GameType == "highcard" {
+		hcg, err := ToHighCardGame(g)
+		if err != nil {
+			return Game{}, fmt.Errorf("failed to cast game as highcardgame: %+v", err)
+		}
+		CreateHighCardGame(hcg)
+	} else {
+		return Game{}, fmt.Errorf("game type: %s, is an invalid gametype", g.GameType)
+	}
+
 	return g, nil
 }
 
@@ -112,7 +122,7 @@ func JoinGame(db *mgo.Database, gameID string, account Account) (Game, error) {
 		}
 	}
 
-	gp := GamePlayer{account.AccountID, account.Username}
+	gp := GamePlayer{AccountID: account.AccountID, Name: account.Username}
 	g.Players = append(g.Players, gp)
 	if err := games.Update(query, g); err != nil {
 		return Game{}, err

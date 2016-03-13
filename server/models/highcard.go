@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	//"github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"gopkg.in/mgo.v2"
 )
 
@@ -33,6 +33,28 @@ type HighCard struct {
 }
 */
 
+var highCardManager HighCardManager
+
+type HighCardManager struct {
+	Games map[string]*HighCardGame
+	DB    *mgo.Database
+}
+
+func InitializeHighCardManager(db *mgo.Database) {
+	highCardManager = HighCardManager{
+		DB:    db,
+		Games: map[string]*HighCardGame{},
+	}
+}
+
+func CreateHighCardGame(game *HighCardGame) {
+	highCardManager.Games[game.ID] = game
+}
+func GetHighCardGame(gameID string) (*HighCardGame, bool) {
+	hcg, ok := highCardManager.Games[gameID]
+	return hcg, ok
+}
+
 var (
 	//highcard client->server actions
 	HighCardStart   = "HIGHCARDSTART"
@@ -41,6 +63,7 @@ var (
 
 	//highcard server->client actions
 	HighCardUpdate = "HIGHCARDUPDATE"
+	HighCardError  = "HIGHCARDERROR"
 )
 
 type HighCardMessage struct {
@@ -56,15 +79,13 @@ type Hand struct {
 
 type HighCardGame struct {
 	Game
-	*Comms
 	Hands []*Hand
 	*Hand
 }
 
-func NewHighCardGame(game Game, comms *Comms) (*HighCardGame, error) {
+func ToHighCardGame(game Game) (*HighCardGame, error) {
 	hcg := HighCardGame{
 		Game:  game,
-		Comms: comms,
 		Hands: []*Hand{},
 	}
 	return &hcg, nil
@@ -77,7 +98,7 @@ func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
 		return nil, fmt.Errorf("failed to load game in newhand: %+v", err)
 	}
 	hcg.Game = game
-	if !HighCardPlayable(game) {
+	if !hcg.HighCardPlayable() {
 		return nil, fmt.Errorf("highcard game not in playable state")
 	}
 
@@ -105,7 +126,7 @@ func (hcg *HighCardGame) PlayHand(db *mgo.Database) error {
 		}{*card},
 	}
 	accountIDs := PlayerAccountIDs(hcg.Hand.Players)
-	if err := hcg.Comms.SendGroup(msg, accountIDs); err != nil {
+	if err := SendGroup(accountIDs, msg); err != nil {
 		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
 	}
 	//wait for action
@@ -117,9 +138,29 @@ func (hcg *HighCardGame) PlayHand(db *mgo.Database) error {
 	return nil
 }
 
-func HighCardPlayable(game Game) bool {
-	if len(game.Players) < 2 {
+func (hcg *HighCardGame) HighCardPlayable() bool {
+	if len(hcg.Game.Players) < 2 {
+		hcg.SendError("not enough players to start game.", PlayerAccountIDs(hcg.Game.Players))
 		return false
 	}
+	//for _, p := range hcg.Game.Players {
+	//	if p.Balance <= 0 {
+	//		hcg.SendError("you need to buy in.", []string{p.AccountID})
+	//		return false
+	//	}
+	//}
 	return true
+}
+
+func (hcg *HighCardGame) SendError(msgStr string, accountIDs []string) {
+	msg := HighCardMessage{
+		Message: Message{Type: HighCardError},
+		Game:    hcg.Game,
+		State: struct {
+			Error string `json:"error"`
+		}{msgStr},
+	}
+	if err := SendGroup(accountIDs, msg); err != nil {
+		logrus.Errorf("failed to sendgroup in highcard.sendError: %+v", err)
+	}
 }

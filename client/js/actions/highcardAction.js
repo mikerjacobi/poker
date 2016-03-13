@@ -7,9 +7,11 @@ var Actions = require("./actions").Actions;
 exports.INIT = 'HIGHCARDINIT'
 exports.UPDATE = 'HIGHCARDUPDATE'
 exports.REPLAY = 'HIGHCARDREPLAY'
+exports.ERROR = 'HIGHCARDERROR'
 
 //register highcard funcs
 Actions.Register(exports.UPDATE)
+Actions.Register(exports.ERROR)
 
 exports.Initialize = function(dispatch, initialized, gameID){
     if (initialized){return;}

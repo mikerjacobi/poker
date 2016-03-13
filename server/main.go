@@ -50,9 +50,6 @@ func main() {
 	}
 	defer session.Close()
 	db := session.Clone().DB(viper.GetString("database"))
-	if err := controllers.InitializeMessageHandler(db); err != nil {
-		logrus.Panicf("failed to init message handler")
-	}
 
 	router := echo.New()
 
@@ -79,12 +76,32 @@ func main() {
 	auth.Use(controllers.RequireAuth())
 	auth.Get("/authhello", authhello)
 	auth.Get("/math", controllers.GetMathCount)
-	auth.WebSocket("/ws", controllers.HandleWebSocket)
 	auth.Post("/logout", controllers.Logout)
-	auth.Get("/game/:gameID", controllers.GetGame)
 	auth.Get("/games", controllers.GetOpenGames)
+	auth.Get("/game/:gameID", controllers.GetGame)
 
-	// start server
+	//websocket actions
+	mh, err := controllers.InitializeMessageHandler(db)
+	if err != nil {
+		logrus.Panicf("failed to init message handler")
+	}
+	auth.WebSocket("/ws", mh.HandleWebSocket)
+	mh.Handle("defaultaction", controllers.DefaultActionHandler)
+	mh.Handle("WSCONNECT", controllers.HandleWebSocketConnect)
+	mh.Handle("WSDISCONNECT", controllers.HandleWebSocketDisconnect)
+
+	mh.Handle("INCREMENT", controllers.HandleIncrement)
+	mh.Handle("DECREMENT", controllers.HandleDecrement)
+	mh.Handle("SQUARE", controllers.HandleSquare)
+	mh.Handle("SQRT", controllers.HandleSqrt)
+
+	mh.Handle("GAMECREATE", controllers.HandleCreateGame)
+	mh.Handle("GAMEJOIN", controllers.HandleJoinGame)
+	mh.Handle("GAMELEAVE", controllers.HandleLeaveGame)
+
+	mh.Handle("HIGHCARDREPLAY", controllers.HandleReplay)
+
+	//start server
 	logrus.Info("starting server")
 	router.Run("0.0.0.0:80")
 }

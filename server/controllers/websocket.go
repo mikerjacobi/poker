@@ -15,50 +15,47 @@ import (
 var mh MessageHandler
 
 type MessageHandler struct {
-	*models.Comms
-	MathController
-	ConnectionController
-	LobbyController
-	HoldemController
-	HighCardController
+	Handlers map[string]func(models.Message) error
 }
 
-func InitializeMessageHandler(db *mgo.Database) error {
+func InitializeMessageHandler(db *mgo.Database) (*MessageHandler, error) {
 
-	comms := newComms(db)
+	models.InitializeConnectionManager(db)
+	models.InitializeHighCardManager(db)
 
-	cc, err := newConnectionController(db, comms)
-	if err != nil {
-		return fmt.Errorf("failed to init connection controller: %s", err.Error())
-	}
+	/*
+		mc, err := newMathController(db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to init math controller: %s", err.Error())
+		}
 
-	mc, err := newMathController(db, comms)
-	if err != nil {
-		return fmt.Errorf("failed to init math controller: %s", err.Error())
-	}
+		hc, err := newHoldemController(db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to init holdem controller: %s", err.Error())
+		}
 
-	hc, err := newHoldemController(db, comms)
-	if err != nil {
-		return fmt.Errorf("failed to init holdem controller: %s", err.Error())
-	}
+		hcc, err := newHighCardController(db)
+		if err != nil {
+			return nil, fmt.Errorf("failed to init highcard controller: %s", err.Error())
+		}
 
-	hcc, err := newHighCardController(db, comms)
-	if err != nil {
-		return fmt.Errorf("failed to init highcard controller: %s", err.Error())
-	}
+		lc, err := newLobbyController(db, hc, hcc)
+		if err != nil {
+			return nil, fmt.Errorf("failed to init lobby controller: %s", err.Error())
+		}
+	*/
 
-	lc, err := newLobbyController(db, comms, hc, hcc)
-	if err != nil {
-		return fmt.Errorf("failed to init lobby controller: %s", err.Error())
-	}
-
-	mh = MessageHandler{comms, mc, cc, lc, hc, hcc}
-	return nil
+	mh := MessageHandler{Handlers: map[string]func(models.Message) error{}}
+	return &mh, nil
 }
 
-func HandleWebSocket(c *echo.Context) error {
+func (mh MessageHandler) Handle(action string, actionHandler func(models.Message) error) {
+	mh.Handlers[action] = actionHandler
+}
+
+func (mh *MessageHandler) HandleWebSocket(c *echo.Context) error {
 	ws := c.Socket()
-	msg := ""
+	rawMsg := ""
 	var wsID string
 
 	for {
@@ -76,47 +73,51 @@ func HandleWebSocket(c *echo.Context) error {
 			continue
 		}
 
-		if err := websocket.Message.Receive(ws, &msg); err != nil {
+		if err := websocket.Message.Receive(ws, &rawMsg); err != nil {
 			//close connection gracefully
 			return c.JSON(200, Response{true, nil})
 		}
 
-		if err := mh.HandleMessage(c, []byte(msg), wsID, ws, account); err != nil {
-			logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
+		//if err := mh.HandleMessage(c, []byte(msg), wsID, ws, account); err != nil {
+		//	logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
+		//	continua
+		//}
+
+		msg := models.Message{
+			Connection: &models.Connection{account.AccountID, wsID, ws},
+			Sender:     account,
+			Raw:        []byte(rawMsg),
+			Context:    c,
+		}
+		if err := json.Unmarshal(msg.Raw, &msg); err != nil {
+			logrus.Errorf("failed to unmarshal msg %s: %s", rawMsg, err.Error())
 			continue
+		}
+
+		handleAction := mh.Handlers[msg.Type]
+		if handleAction == nil {
+			msg.Type = "defaultaction"
+			handleAction = mh.Handlers["defaultaction"]
+		}
+
+		logrus.Infof("%s: %+s", msg.Sender.Username, msg.Type)
+		if err := handleAction(msg); err != nil {
+			logrus.Errorf("failed to handle %s's action: %s.  %+v", msg.Sender.Username, msg.Type, err)
 		}
 	}
 	return nil
 }
 
-func (mh MessageHandler) HandleMessage(c *echo.Context, msg []byte, wsID string, ws *websocket.Conn, a models.Account) error {
-	m := models.Message{
-		WebSocketID:     wsID,
-		WebSocket:       ws,
-		SenderAccountID: a.AccountID,
-		Raw:             msg,
-		Context:         c,
-	}
-	if err := json.Unmarshal(msg, &m); err != nil {
-		return err
-	}
+func DefaultActionHandler(msg models.Message) error {
+	return fmt.Errorf("invalid payload: %+v", string(msg.Raw))
+}
 
-	logrus.Infof("%s: %+s", a.Username, m.Type)
-	//logrus.Infof("%s: %+s %+v", m.Sender.Username, m.Type, string(msg))
-	if models.StringInSlice(m.Type, MathActions) {
-		mh.MathController.Queue <- m
-	} else if models.StringInSlice(m.Type, models.ConnectionActions) {
-		mh.ConnectionController.Queue <- m
-	} else if models.StringInSlice(m.Type, models.LobbyActions) {
-		mh.LobbyController.Queue <- m
-	} else if models.StringInSlice(m.Type, models.HoldemActions) {
-		mh.HoldemController.Queue <- m
-	} else if models.StringInSlice(m.Type, models.HighCardActions) {
-		mh.HighCardController.Queue <- m
-	} else {
-		err := fmt.Sprintf("invalid action: %s", m.Type)
-		logrus.Errorf("%s: %s", a.AccountID, err)
-		sendError(mh.ConnectionController.Comms, a.AccountID, err)
-	}
+func HandleWebSocketConnect(msg models.Message) error {
+	models.Connect(msg.Connection)
+	return nil
+}
+
+func HandleWebSocketDisconnect(msg models.Message) error {
+	models.Disconnect(msg.Sender.AccountID)
 	return nil
 }

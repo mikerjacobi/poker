@@ -8,65 +8,49 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var (
-	Increment = "INCREMENT"
-	Decrement = "DECREMENT"
-	Square    = "SQUARE"
-	Sqrt      = "SQRT"
-)
-
-type MathMessage struct {
-	Message
-	*Counter
-}
-
-type Counter struct {
-	Count int `json:"count" bson:"count"`
-}
-
-func IncrementCounter(db *mgo.Database) (*Counter, error) {
+func IncrementCounter(db *mgo.Database) (int, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	c.Count = checkBounds(c.Count + 1)
 	if err := saveMathCount(db, c); err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c, nil
+	return c.Count, nil
 }
-func DecrementCounter(db *mgo.Database) (*Counter, error) {
+func DecrementCounter(db *mgo.Database) (int, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	c.Count = checkBounds(c.Count - 1)
 	if err := saveMathCount(db, c); err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c, nil
+	return c.Count, nil
 }
-func SquareCounter(db *mgo.Database) (*Counter, error) {
+func SquareCounter(db *mgo.Database) (int, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	c.Count = checkBounds(c.Count * c.Count)
 	if err := saveMathCount(db, c); err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c, nil
+	return c.Count, nil
 }
-func SqrtCounter(db *mgo.Database) (*Counter, error) {
+func SqrtCounter(db *mgo.Database) (int, error) {
 	c, err := LoadMathCount(db)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	c.Count = checkBounds(int(math.Sqrt(float64(c.Count))))
 	if err := saveMathCount(db, c); err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c, nil
+	return c.Count, nil
 }
 
 func checkBounds(count int) int {
@@ -79,9 +63,12 @@ func checkBounds(count int) int {
 	return count
 }
 
+type Counter struct {
+	Count int `json:"count" bson:"count"`
+}
+
 func LoadMathCount(db *mgo.Database) (*Counter, error) {
 	mathdb := db.C("math")
-
 	counter := Counter{}
 	if err := mathdb.Find(bson.M{}).One(&counter); err != nil {
 		if err.Error() == "not found" {

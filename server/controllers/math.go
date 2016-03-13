@@ -1,116 +1,77 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 	"github.com/mikerjacobi/poker/server/models"
 	"gopkg.in/mgo.v2"
 )
 
-var MathActions = []string{
-	models.Increment,
-	models.Decrement,
-	models.Square,
-	models.Sqrt,
+type MathMessage struct {
+	models.Message
+	Count int `json:"count"`
 }
 
-type MathController struct {
-	DB    *mgo.Database
-	Queue chan models.Message
-	*models.Comms
-}
-
-func newMathController(db *mgo.Database, c *models.Comms) (MathController, error) {
-	mc := MathController{
-		DB:    db,
-		Comms: c,
-	}
-
-	mc.Queue = make(chan models.Message)
-	go mc.ReadMessages()
-	return mc, nil
-}
-
-func (mc MathController) ReadMessages() {
-	for {
-		m := <-mc.Queue
-		switch m.Type {
-		case models.Increment:
-			mc.HandleIncrement(m)
-		case models.Decrement:
-			mc.HandleDecrement(m)
-		case models.Square:
-			mc.HandleSquare(m)
-		case models.Sqrt:
-			mc.HandleSqrt(m)
-		default:
-			continue
-		}
+func newMathMessage(action string, count int) MathMessage {
+	return MathMessage{
+		Message: models.Message{Type: action},
+		Count:   count,
 	}
 }
 
-func (mc MathController) HandleIncrement(msg models.Message) {
-	log := logrus.WithFields(logrus.Fields{"func": "HandleIncrement"})
-	c, err := models.IncrementCounter(mc.DB)
+func HandleIncrement(msg models.Message) error {
+	db := msg.Context.Get("db").(*mgo.Database)
+
+	count, err := models.IncrementCounter(db)
 	if err != nil {
-		e := "increment error "
-		sendError(mc.Comms, msg.SenderAccountID, e)
-		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
-		return
+		models.SendError(msg.Sender.AccountID, "increment error")
+		return fmt.Errorf("failed to increment: %+v", err)
 	}
-	incrementMsg := models.MathMessage{Message: msg, Counter: c}
-	if err := mc.SendAll(incrementMsg); err != nil {
-		log.Errorf("sendall error: %+v", err)
-		return
+
+	if err := models.SendAll(newMathMessage(msg.Type, count)); err != nil {
+		return fmt.Errorf("sendall error: %+v", err)
 	}
+	return nil
 }
 
-func (mc MathController) HandleDecrement(msg models.Message) {
-	log := logrus.WithFields(logrus.Fields{"func": "HandleDecrement"})
-	c, err := models.DecrementCounter(mc.DB)
+func HandleDecrement(msg models.Message) error {
+	db := msg.Context.Get("db").(*mgo.Database)
+	count, err := models.DecrementCounter(db)
 	if err != nil {
-		e := "decrement error "
-		sendError(mc.Comms, msg.SenderAccountID, e)
-		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
-		return
+		models.SendError(msg.Sender.AccountID, "decrement error")
+		return fmt.Errorf("failed to decrement: %+v", err)
 	}
-	decrementMsg := models.MathMessage{Message: msg, Counter: c}
-	if err := mc.SendAll(decrementMsg); err != nil {
-		log.Errorf("sendall error: %+v", err)
-		return
+	if err := models.SendAll(newMathMessage(msg.Type, count)); err != nil {
+		return fmt.Errorf("sendall error: %+v", err)
 	}
+	return nil
 }
 
-func (mc MathController) HandleSquare(msg models.Message) {
-	log := logrus.WithFields(logrus.Fields{"func": "HandleSquare"})
-	c, err := models.SquareCounter(mc.DB)
+func HandleSquare(msg models.Message) error {
+	db := msg.Context.Get("db").(*mgo.Database)
+	count, err := models.SquareCounter(db)
 	if err != nil {
-		e := "square error "
-		sendError(mc.Comms, msg.SenderAccountID, e)
-		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
-		return
+		models.SendError(msg.Sender.AccountID, "square error")
+		return fmt.Errorf("failed to square: %+v", err)
 	}
-	squareMsg := models.MathMessage{Message: msg, Counter: c}
-	if err := mc.SendAll(squareMsg); err != nil {
-		log.Errorf("sendall error: %+v", err)
-		return
+	if err := models.SendAll(newMathMessage(msg.Type, count)); err != nil {
+		return fmt.Errorf("sendall error: %+v", err)
 	}
+	return nil
 }
 
-func (mc MathController) HandleSqrt(msg models.Message) {
-	log := logrus.WithFields(logrus.Fields{"func": "HandleSquare"})
-	c, err := models.SqrtCounter(mc.DB)
+func HandleSqrt(msg models.Message) error {
+	db := msg.Context.Get("db").(*mgo.Database)
+	count, err := models.SqrtCounter(db)
 	if err != nil {
-		e := "sqrt error "
-		sendError(mc.Comms, msg.SenderAccountID, e)
-		logrus.Errorf("%s: %s", msg.SenderAccountID, e+err.Error())
-		return
+		models.SendError(msg.Sender.AccountID, "sqrt error")
+		return fmt.Errorf("failed to sqrt: %+v", err)
 	}
-	squareMsg := models.MathMessage{Message: msg, Counter: c}
-	if err := mc.SendAll(squareMsg); err != nil {
-		log.Errorf("sendall error: %+v", err)
-		return
+	if err := models.SendAll(newMathMessage(msg.Type, count)); err != nil {
+		return fmt.Errorf("sendall error: %+v", err)
 	}
+	return nil
 }
 
 func GetMathCount(c *echo.Context) error {
