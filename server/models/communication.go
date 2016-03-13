@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"gopkg.in/mgo.v2"
+
 	"github.com/Sirupsen/logrus"
 	"github.com/labstack/echo"
 	"golang.org/x/net/websocket"
@@ -45,41 +47,40 @@ func SendError(accountID string, errMsg string) {
 	}
 
 	if err := Send(accountID, msg); err != nil {
-		logrus.Errorf("failed to send error to %s: %+v", accountID, err)
+		logrus.Errorf("failed to SendError to %s: %+v", accountID, err)
 	}
 }
 
 func SendAll(msg interface{}) error {
-	msgJSON, err := json.Marshal(msg)
-	if err != nil {
-		return fmt.Errorf("failed to sendall: %s", err.Error())
-	}
-
-	for _, conn := range connectionManager.Connections {
-		if err := websocket.Message.Send(conn.Socket, string(msgJSON)); err != nil {
-			logrus.Warnf("discarding dead ws conn from sendall for account: %s", conn.AccountID)
-			Disconnect(conn.AccountID)
+	for accountID := range connectionManager.Connections {
+		if err := Send(accountID, msg); err != nil {
+			logrus.Errorf("failed to SendAll to %s: %+v", accountID, err)
 		}
 	}
 	return nil
 }
 
-func SendGroup(accountIDs []string, msg interface{}) error {
-	msgJSON, err := json.Marshal(msg)
+func SendGame(db *mgo.Database, gameID string, msg interface{}) error {
+	game, err := LoadGame(db, gameID, "")
 	if err != nil {
-		return fmt.Errorf("failed to sendgroupd: %s", err.Error())
+		return fmt.Errorf("failed loadgame in SendGame: %+v", err)
 	}
 
-	for _, accountID := range accountIDs {
-		conn, ok := connectionManager.Connections[accountID]
-		if !ok {
-			return fmt.Errorf("accountID: %s is not currently connected", accountID)
-		}
-
-		if err := websocket.Message.Send(conn.Socket, string(msgJSON)); err != nil {
-			logrus.Warnf("discarding dead ws conn from sendgroup for account: %s", conn.AccountID)
-			Disconnect(accountID)
+	for _, player := range game.Players {
+		if err := Send(player.AccountID, msg); err != nil {
+			logrus.Errorf("failed to SendGame to %s: %+v", player.AccountID, err)
 		}
 	}
 	return nil
+}
+
+func SendGameError(db *mgo.Database, gameID string, errMsg string) {
+	game, err := LoadGame(db, gameID, "")
+	if err != nil {
+		logrus.Errorf("failed to loadgame in sendGameError: %+v", err)
+	}
+
+	for _, player := range game.Players {
+		SendError(player.AccountID, errMsg)
+	}
 }

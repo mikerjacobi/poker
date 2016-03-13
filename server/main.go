@@ -86,7 +86,7 @@ func main() {
 		logrus.Panicf("failed to init message handler")
 	}
 	auth.WebSocket("/ws", mh.HandleWebSocket)
-	mh.Handle("defaultaction", controllers.DefaultActionHandler)
+	mh.Handle("/default", controllers.DefaultActionHandler)
 	mh.Handle("WSCONNECT", controllers.HandleWebSocketConnect)
 	mh.Handle("WSDISCONNECT", controllers.HandleWebSocketDisconnect)
 

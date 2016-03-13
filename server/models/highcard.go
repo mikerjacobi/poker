@@ -2,7 +2,7 @@ package models
 
 import (
 	"fmt"
-	"github.com/Sirupsen/logrus"
+
 	"gopkg.in/mgo.v2"
 )
 
@@ -56,11 +56,6 @@ func GetHighCardGame(gameID string) (*HighCardGame, bool) {
 }
 
 var (
-	//highcard client->server actions
-	HighCardStart   = "HIGHCARDSTART"
-	HighCardReplay  = "HIGHCARDREPLAY"
-	HighCardActions = []string{HighCardStart, HighCardReplay}
-
 	//highcard server->client actions
 	HighCardUpdate = "HIGHCARDUPDATE"
 	HighCardError  = "HIGHCARDERROR"
@@ -98,7 +93,7 @@ func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
 		return nil, fmt.Errorf("failed to load game in newhand: %+v", err)
 	}
 	hcg.Game = game
-	if !hcg.HighCardPlayable() {
+	if !hcg.HighCardPlayable(db) {
 		return nil, fmt.Errorf("highcard game not in playable state")
 	}
 
@@ -125,8 +120,8 @@ func (hcg *HighCardGame) PlayHand(db *mgo.Database) error {
 			Card `json:"card"`
 		}{*card},
 	}
-	accountIDs := PlayerAccountIDs(hcg.Hand.Players)
-	if err := SendGroup(accountIDs, msg); err != nil {
+
+	if err := SendGame(db, hcg.Game.ID, msg); err != nil {
 		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
 	}
 	//wait for action
@@ -138,9 +133,9 @@ func (hcg *HighCardGame) PlayHand(db *mgo.Database) error {
 	return nil
 }
 
-func (hcg *HighCardGame) HighCardPlayable() bool {
+func (hcg *HighCardGame) HighCardPlayable(db *mgo.Database) bool {
 	if len(hcg.Game.Players) < 2 {
-		hcg.SendError("not enough players to start game.", PlayerAccountIDs(hcg.Game.Players))
+		SendGameError(db, hcg.Game.ID, "not enough players to start game.")
 		return false
 	}
 	//for _, p := range hcg.Game.Players {
@@ -150,17 +145,4 @@ func (hcg *HighCardGame) HighCardPlayable() bool {
 	//	}
 	//}
 	return true
-}
-
-func (hcg *HighCardGame) SendError(msgStr string, accountIDs []string) {
-	msg := HighCardMessage{
-		Message: Message{Type: HighCardError},
-		Game:    hcg.Game,
-		State: struct {
-			Error string `json:"error"`
-		}{msgStr},
-	}
-	if err := SendGroup(accountIDs, msg); err != nil {
-		logrus.Errorf("failed to sendgroup in highcard.sendError: %+v", err)
-	}
 }

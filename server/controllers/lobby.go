@@ -49,7 +49,7 @@ func GetGame(c *echo.Context) error {
 
 func GetOpenGames(c *echo.Context) error {
 	db := c.Get("db").(*mgo.Database)
-	games, err := models.LoadOpenGames(db)
+	games, err := models.LoadGames(db)
 	if err != nil {
 		logrus.Errorf("failed to get open games")
 		c.JSON(500, Response{})
@@ -131,26 +131,8 @@ func HandleJoinGame(msg models.Message) error {
 		return fmt.Errorf("send error in handleJoinGame: %+v", err)
 	}
 
-	//check to see if game is ready to be started
-	/*if err := CheckStartGame(game); err != nil {
-		models.SendError(msg.Sender.AccountID, userFailMsg)
-		return fmt.Errorf("%s. %+v", userFailMsg, err)
-	}*/
 	return nil
 }
-
-/*
-func CheckStartGame(game models.Game) error {
-	if game.GameType == "holdem" {
-		return CheckStartHoldem(game)
-	} else if game.GameType == "highcard" {
-		return CheckStartHighCard(game)
-	} else {
-		return fmt.Errorf("game type: %s, is an invalid gametype", game.GameType)
-	}
-	return nil
-}
-*/
 
 func HandleLeaveGame(msg models.Message) error {
 	userFailMsg := "failed to leave game"

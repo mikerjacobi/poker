@@ -22,29 +22,6 @@ func InitializeMessageHandler(db *mgo.Database) (*MessageHandler, error) {
 
 	models.InitializeConnectionManager(db)
 	models.InitializeHighCardManager(db)
-
-	/*
-		mc, err := newMathController(db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to init math controller: %s", err.Error())
-		}
-
-		hc, err := newHoldemController(db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to init holdem controller: %s", err.Error())
-		}
-
-		hcc, err := newHighCardController(db)
-		if err != nil {
-			return nil, fmt.Errorf("failed to init highcard controller: %s", err.Error())
-		}
-
-		lc, err := newLobbyController(db, hc, hcc)
-		if err != nil {
-			return nil, fmt.Errorf("failed to init lobby controller: %s", err.Error())
-		}
-	*/
-
 	mh := MessageHandler{Handlers: map[string]func(models.Message) error{}}
 	return &mh, nil
 }
@@ -78,11 +55,6 @@ func (mh *MessageHandler) HandleWebSocket(c *echo.Context) error {
 			return c.JSON(200, Response{true, nil})
 		}
 
-		//if err := mh.HandleMessage(c, []byte(msg), wsID, ws, account); err != nil {
-		//	logrus.Errorf("failed to push msg %s: %s", msg, err.Error())
-		//	continua
-		//}
-
 		msg := models.Message{
 			Connection: &models.Connection{account.AccountID, wsID, ws},
 			Sender:     account,
@@ -96,8 +68,8 @@ func (mh *MessageHandler) HandleWebSocket(c *echo.Context) error {
 
 		handleAction := mh.Handlers[msg.Type]
 		if handleAction == nil {
-			msg.Type = "defaultaction"
-			handleAction = mh.Handlers["defaultaction"]
+			msg.Type = "/default"
+			handleAction = mh.Handlers["/default"]
 		}
 
 		logrus.Infof("%s: %+s", msg.Sender.Username, msg.Type)
