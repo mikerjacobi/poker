@@ -2,15 +2,32 @@
 var reactCookie = require("react-cookie");
 var Config = require("../common").Config;
 require("whatwg-fetch");
+var Actions = require("./actions").Actions;
 
+//account actions
 exports.FETCH = '/account/fetch';
 exports.FETCHED = '/account/fetched';
 exports.CREATE = '/account/create';
+exports.LOAD = '/account/load';
+exports.REQUESTCHIPS = '/account/chips/request'
+
+//account registrations
+Actions.Register(exports.LOAD);
+
+exports.Init = function(dispatch, ws){
+    var action = {type:exports.LOAD};
+    ws.jsend(action);
+};
+
+exports.RequestChips = function(dispatch, ws, amount){
+    var action = {type:exports.REQUESTCHIPS, amount};
+    ws.jsend(action);
+};
 
 exports.Create = function(dispatch, username, password, repeat){
     dispatch({type:exports.FETCH});
 
-    var url = Config.baseURL + "/create_account"
+    var url = Config.baseURL + "/account"
     var action = {type: exports.CREATE};
 
     var data = JSON.stringify({

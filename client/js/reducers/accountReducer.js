@@ -2,6 +2,10 @@ var Account = require("../actions/accountAction");
 
 var getInitialAccountState = function(){
     return {
+        account: {
+            username:"",
+            balance: -1
+        },
         isFetching:false
     };
 };
@@ -13,6 +17,9 @@ exports.Account = function(state, action){
     var newState = {};
 
     switch (action.type){
+    case Account.LOAD:
+        newState = action;
+        break;
     case Account.FETCH:
         newState = {isFetching:true};
         break;

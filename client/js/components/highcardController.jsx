@@ -18,13 +18,13 @@ class HighCardMenu extends React.Component {
                 <div className="ui blue label"> Players: {players.join(", ")} </div>
                  <br/><br/>
                 <button 
-                    className="ui black tiny button"
+                    className="ui tiny button"
                     id="play_game_button"
                     onClick={this.props.play}>
                     Play
                 </button>
                 <button 
-                    className="ui black tiny button"
+                    className="ui primary tiny button"
                     onClick={this.props.leaveGame}>
                     Leave Game
                 </button>

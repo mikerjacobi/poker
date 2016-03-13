@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -12,9 +13,25 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+const (
+	accountLoad = "/account/load"
+)
+
 type CreateAccountRequest struct {
 	LoginRequest
 	Repeat string `json:"repeat"`
+}
+
+type AccountMessage struct {
+	Type    string         `json:"type"`
+	Account models.Account `json:"account"`
+}
+
+func newAccountMessage(action string, account models.Account) AccountMessage {
+	return AccountMessage{
+		Type:    action,
+		Account: account,
+	}
 }
 
 func validateCreateAccount(carBody io.ReadCloser) (*CreateAccountRequest, error) {
@@ -38,6 +55,23 @@ func validateCreateAccount(carBody io.ReadCloser) (*CreateAccountRequest, error)
 		return nil, errors.New("password cannot be empty")
 	}
 	return &car, nil
+}
+
+func HandleLoadAccount(msg models.Message) error {
+	db, dbok := msg.Context.Get("db").(*mgo.Database)
+	a, aok := msg.Context.Get("user").(models.Account)
+	if !dbok || !aok {
+		return fmt.Errorf("failed to load account or db.  dbok: %+v, aok: %+v", dbok, aok)
+	}
+	account, err := models.LoadAccount(db, a.Username)
+	if err != nil {
+		return fmt.Errorf("failed to load account in handle load account: %+v", err)
+	}
+
+	if err := models.Send(account.AccountID, newAccountMessage(accountLoad, account)); err != nil {
+		return fmt.Errorf("failed to send in GetAccount: %+v", err)
+	}
+	return nil
 }
 
 func CreateAccount(c *echo.Context) error {
@@ -72,5 +106,38 @@ func CreateAccount(c *echo.Context) error {
 	}
 
 	c.JSON(200, Response{true, a})
+	return nil
+}
+
+func HandleChipRequest(msg models.Message) error {
+	db, dbok := msg.Context.Get("db").(*mgo.Database)
+	a, aok := msg.Context.Get("user").(models.Account)
+	if !dbok || !aok {
+		return fmt.Errorf("failed to load account or db.  dbok: %+v, aok: %+v", dbok, aok)
+	}
+	account, err := models.LoadAccount(db, a.Username)
+	if err != nil {
+		return fmt.Errorf("failed to load account in handle chip request: %+v", err)
+	}
+
+	req := struct {
+		Amount int `json:"amount"`
+	}{}
+	if err := json.Unmarshal(msg.Raw, &req); err != nil {
+		return fmt.Errorf("failed to unmarshal chipreq: %+v", err)
+	}
+
+	if req.Amount <= 0 {
+		return fmt.Errorf("chip request <= 0: %+v", req)
+	}
+	account.Balance += req.Amount
+
+	if err := account.Update(db); err != nil {
+		return fmt.Errorf("failed to update account balance: %+v", err)
+	}
+
+	if err := models.Send(account.AccountID, newAccountMessage(accountLoad, account)); err != nil {
+		return fmt.Errorf("failed to send in GetAccount: %+v", err)
+	}
 	return nil
 }

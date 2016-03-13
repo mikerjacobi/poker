@@ -22,12 +22,24 @@ Actions.Register(exports.SERVERERROR, function(dispatch, msg){
     console.log("server returned ws error: ", msg);
 });
 
+//helper function to connect and call a passed in init function when ws ready
+exports.connect = function(dispatch, ws, init){
+    var ws = exports.wsConnect(dispatch, ws);
+    if (ws.readyState == 0){
+        setTimeout(function () {
+            init(dispatch, ws);
+        }, 100);
+    } else {
+        init(dispatch, ws);
+    }
+};
+
 exports.wsConnect = function(dispatch, currentWSConnection){
     var loggedIn = (reactCookie.load("session") || "") != "";
 
     //only attempt to wsconnect if we are logged in and dont have a ws conn
     if (!loggedIn || currentWSConnection){
-        return false;
+        return currentWSConnection;
     }
 
     var action = {type:exports.WSCONNECT};
@@ -78,7 +90,7 @@ exports.wsConnect = function(dispatch, currentWSConnection){
         }
     };
     dispatch(action);
-    return true;
+    return wsConnection;
 }
 
 exports.wsDisconnect = function(dispatch, wsConnection){

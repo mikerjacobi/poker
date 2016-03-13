@@ -66,7 +66,7 @@ func main() {
 	router.Favicon("../client/favicon.ico")
 	router.Get("/geta", controllers.GetA)
 	router.Get("/getb", controllers.GetB)
-	router.Post("/create_account", controllers.CreateAccount)
+	router.Post("/account", controllers.CreateAccount)
 	router.Get("/hello", hello)
 	router.Post("/login", controllers.Login)
 	router.Static("/", "../client")
@@ -101,6 +101,8 @@ func main() {
 
 	mh.Handle("/highcard/play", controllers.HandlePlay)
 
+	mh.Handle("/account/load", controllers.HandleLoadAccount)
+	mh.Handle("/account/chips/request", controllers.HandleChipRequest)
 	//start server
 	logrus.Info("starting server")
 	router.Run("0.0.0.0:80")

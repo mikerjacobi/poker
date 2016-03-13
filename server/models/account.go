@@ -12,6 +12,7 @@ import (
 
 type Account struct {
 	AccountID string `json:"-" bson:"accountID"`
+	Balance   int    `json:"balance" bson:"balance"`
 	Username  string `json:"username" bson:"username"`
 	Password  string `json:"-" bson:"-"`
 	Hashword  string `json:"-" bson:"password"`
@@ -50,6 +51,14 @@ func LoadAccount(db *mgo.Database, username string) (Account, error) {
 		return a, err
 	}
 	return a, nil
+}
+
+func (a Account) Update(db *mgo.Database) error {
+	query := bson.M{"accountID": a.AccountID}
+	if err := db.C("accounts").Update(query, a); err != nil {
+		return err
+	}
+	return nil
 }
 
 func CheckSession(db *mgo.Database, sessionID string) (Account, error) {

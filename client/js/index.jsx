@@ -25,6 +25,7 @@ var GetInitialState = require("./common").GetInitialState;
 
 //smart components
 var MathController = require("./components/mathController").MathController;
+var AccountController = require("./components/accountController").AccountController;
 var LobbyController = require("./components/lobbyController").LobbyController;
 var HoldemController = require("./components/holdemController").HoldemController;
 var HighCardController = require("./components/highcardController").HighCardController;
@@ -56,6 +57,7 @@ class App extends React.Component {
                         <router.Link className="item" onClick={Common.SetPath(store)} to="/">Index</router.Link>  
                         <router.Link className="item" onClick={Common.SetPath(store)} to="/math">Math</router.Link>  
                         <router.Link className="item" onClick={Common.SetPath(store)} to="/lobby">Lobby</router.Link>  
+                        <router.Link className="item" onClick={Common.SetPath(store)} to="/account">Account</router.Link>  
                         <router.Link className="item" onClick={Common.SetPath(store)} to="/auth">Auth</router.Link>  
                         <div className="item"><Logout /></div>
                     </div>
@@ -80,6 +82,7 @@ render((
                 <router.Route path="/highcard/:gameid" component={HighCardController} onEnter={Common.RequireAuth(store)} />
             </router.Route>
             <router.Route path="async" component={AsyncController} />
+            <router.Route path="account" component={AccountController} onEnter={Common.RequireAuth(store)} />
             <router.Route path="auth" component={AuthController} />
         </router.Route> 
     </router.Router>
