@@ -39,12 +39,6 @@ module.exports = function () {
                 })
         }
     });
-    this.AfterFeatures(function(event, callback){
-        //var cmd = "docker rm -f server_chrome_1";
-        //exec(cmd);
-        //var cmd = "cd ../server && docker-compose up -d && cd ../test";
-        //exec(cmd);
-    });
     this.After(function(scenario){
         this.db.close();
         for (var i=1; i<=Object.keys(this.clients).length; i++){
@@ -56,6 +50,9 @@ module.exports = function () {
         switch (route){
             case "lobby":
                 uri = "/#/lobby";
+                break;
+            case "account":
+                uri = "/#/account";
                 break;
             case "login":
                 uri = "/#/auth?";
@@ -71,18 +68,6 @@ module.exports = function () {
         this[user].client
             .url(this.appHost + uri)
             .pause(200)
-            .call(done);
-    });
-
-    this.Given(/^(.*) logs in with (.*)$/, function(user, client, done){
-        this[user] = this.fixtures.users[user];
-        this[user].client = this.clients[client];
-        this[user].client
-            .url(this.appHost + "/#/auth")
-            .setValue('#username_textfield', this[user].username)
-            .setValue('#password_textfield', "111")
-            .click('#login_button')
-            .pause(500)
             .call(done);
     });
     this.When(/^(.*) is screenshot$/, function(ssName, done){
@@ -102,67 +87,6 @@ module.exports = function () {
                     webcssRes.element[0].isWithinMisMatchTolerance,
                     "pdiff not within tolerance");
             })
-            .call(done);
-    });
-    this.Then(/^(.*) has a session cookie$/, function(user, done){
-        this[user].client
-            .getCookie("session").then(function(cookie){
-                assert.ok(cookie.value.length == 36, "fail session cookie: "+JSON.stringify(cookie))
-            })
-            .call(done);
-    });
-    this.Given(/^there are no games$/, function(done){
-        var games = this.db.get('games');
-        games.remove({});
-        done();
-    });
-    this.When(/^(.*) creates (.*) game$/, function(user, gameType, done){
-        var typeNum;
-        switch (gameType){
-            case "holdem":
-                typeNum = 2;
-                break;
-            case "highcard":
-                typeNum = 3;
-                break;
-            default:
-                typeNum = 1;
-        }
-
-        this[user].client
-            .setValue('#gamename_textfield', "test_"+gameType)
-            .click('//*[@id="gametype_dropdown"]/option[' + typeNum + ']')
-            .click('#create_game_button')
-            .pause(500)
-            .call(done);
-    });
-    this.When(/^(.*) joins game$/, function(user, done){
-        this[user].client
-            .url(this.appHost + "/#/lobby")
-            .click("#game_listing_0")
-            .pause(500)
-            .call(done);
-    });
-    this.Given(/^there is a (.*) game$/, function(gameType, done){
-        this.gameType = gameType;
-        var games = this.db.get('games');
-        games.insert({
-            gameID : "9cf67eab-8a93-4005-9a5b-b9cf678a6cb9", 
-            gameName : "test_"+gameType, 
-            state : "open", 
-            players : [ ], 
-            gameType : gameType
-        }, function (err, doc) {
-            assert.ifError(err);
-            setTimeout(function(){
-                done();
-            }, 1000)
-        });
-    });
-    this.When(/^(.*) plays game$/, function(user, done){
-        this[user].client
-            .click("#play_game_button")
-            .pause(500)
             .call(done);
     });
     this.When(/^(.*) screenshots game$/, function(user, done){
