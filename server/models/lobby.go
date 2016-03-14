@@ -53,10 +53,21 @@ func LeaveGame(db *mgo.Database, gameID string, accountID string) (Game, error) 
 	}
 	for i := range g.Players {
 		if g.Players[i].AccountID == accountID {
+			chips := g.Players[i].Chips
 			g.Players = append(g.Players[0:i], g.Players[i+1:]...)
 			if err := games.Update(query, g); err != nil {
 				return Game{}, err
 			}
+
+			account, err := LoadAccountByID(db, accountID)
+			if err != nil {
+				return g, fmt.Errorf("failed to load account")
+			}
+			account.Balance += chips
+			if err := account.Update(db); err != nil {
+				return g, fmt.Errorf("failed to update account balance")
+			}
+
 			break
 		}
 	}

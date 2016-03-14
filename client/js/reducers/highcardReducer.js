@@ -12,7 +12,7 @@ var getInitialState = function(){
             players:[],
         },
         gameState: {
-            card: {},
+            players: {},
             error: ""
         }
     };
@@ -31,6 +31,7 @@ exports.HighCard = function(state, action) {
         }
         break;
     case HighCard.UPDATE:
+        console.log(action)
         newState = action;
         newState.initialized = true;
         break;

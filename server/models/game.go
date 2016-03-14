@@ -84,3 +84,11 @@ func LoadGames(db *mgo.Database) ([]Game, error) {
 	}
 	return games, nil
 }
+
+func (g Game) Update(db *mgo.Database) error {
+	query := bson.M{"gameID": g.ID}
+	if err := db.C("games").Update(query, g); err != nil {
+		return err
+	}
+	return nil
+}

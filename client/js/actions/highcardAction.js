@@ -20,12 +20,13 @@ exports.Initialize = function(dispatch, initialized, gameID){
         if (resp.status != 200){
             throw "status code received: " + resp.status;
         }
+        console.log(resp)
         return resp.json();
     }).then(function(json){
         var action = {
             type: exports.INIT,
             gameInfo: json.payload,
-            gameState:{},
+            gameState:{players:[]},
             initialized: true
         };
         dispatch(action);

@@ -8,16 +8,6 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-const (
-	highCardUpdate = "/highcard/update"
-)
-
-type HighCardMessage struct {
-	Type        string `json:"type"`
-	models.Game `json:"gameInfo"`
-	State       interface{} `json:"gameState"`
-}
-
 func HandlePlay(msg models.Message) error {
 	db := msg.Context.Get("db").(*mgo.Database)
 	gm := GameMessage{}
@@ -30,21 +20,8 @@ func HandlePlay(msg models.Message) error {
 		return fmt.Errorf("failed to load high card game.  either not started or ended")
 	}
 
-	card, err := hcg.PlayHand(db)
-	if err != nil {
+	if err := hcg.StartHand(db); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
-
-	hcMsg := HighCardMessage{
-		Type: highCardUpdate,
-		Game: hcg.Game,
-		State: struct {
-			models.Card `json:"card"`
-		}{*card},
-	}
-	if err := models.SendGame(db, hcg.Game.ID, hcMsg); err != nil {
-		return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
-	}
-
 	return nil
 }
