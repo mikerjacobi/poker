@@ -13,7 +13,7 @@ import (
 type GamePlayer struct {
 	AccountID string `json:"accountID" bson:"accountID"`
 	Name      string `json:"name" bson:"name"`
-	Balance   int    `json:"balance" bson:"balance"`
+	Chips     int    `json:"chips" bson:"chips"`
 }
 
 type Game struct {

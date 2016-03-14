@@ -31,10 +31,11 @@ exports.Create = function(dispatch, ws, gameName, gameType){
     };
     ws.jsend(action);
 };
-exports.Join = function(dispatch, ws, game){
+exports.Join = function(dispatch, ws, game, buyinAmount){
     var action = {
         type:exports.JOIN,
-        game
+        game,
+        buyinAmount: parseInt(buyinAmount)
     };
     ws.jsend(action);
 };

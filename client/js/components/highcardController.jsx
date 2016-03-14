@@ -10,7 +10,7 @@ class HighCardMenu extends React.Component {
     render() {
         var players = [];
         for (var i=0; i<this.props.players.length; i++){
-            players.push(this.props.players[i].name);
+            players.push(this.props.players[i].name + ":" + this.props.players[i].chips);
         }
         return(<div> 
                 <div className="ui green label"> {this.props.gameName} </div>

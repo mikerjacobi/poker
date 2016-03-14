@@ -98,6 +98,8 @@ func main() {
 	mh.Handle("/game/create", controllers.HandleCreateGame)
 	mh.Handle("/game/join", controllers.HandleJoinGame)
 	mh.Handle("/game/leave", controllers.HandleLeaveGame)
+	//mh.Handle("/game/buyin", controllers.HandleGameBuyIn)
+	//mh.Handle("/game/cashout", controllers.HandleGameCashOut)
 
 	mh.Handle("/highcard/play", controllers.HandlePlay)
 

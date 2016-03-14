@@ -47,16 +47,37 @@ class CreateGameForm extends React.Component {
 };
 
 class JoinGameListing extends React.Component {
+    constructor(props){
+        super(props);
+        this.changeBuyinAmount = this.changeBuyinAmount.bind(this);
+        this.state = {buyinAmount:0};
+    }
+    changeBuyinAmount(event){
+        this.setState({buyinAmount:event.target.value});
+    }
     render() {
         var players = [];
         for (var i=0; i<this.props.game.players.length; i++){
             players.push(this.props.game.players[i].name); 
         }
         return(
-            <tr onClick={this.props.joinGame.bind(this, this.props.game)} id={this.props.id}>
+            <tr id={this.props.id}>
                 <td>{this.props.game.gameName}</td>
                 <td>{this.props.game.gameType}</td>
                 <td>{players.join(", ")}</td>
+                <td>
+                    <input 
+                        type="text"
+                        size="10"
+                        maxLength="10"
+                        id="game_buyin_amount"
+                        placeholder="chips"
+                        value={this.state.buyinAmount}
+                        onChange={this.changeBuyinAmount}/>
+                </td>
+                <td>
+                    <button onClick={this.props.joinGame.bind(this, this.props.game, this.state.buyinAmount)}> Join </button>
+                </td>
             </tr>
         );
     }
@@ -80,12 +101,14 @@ class GameList extends React.Component {
         }
 
         return(
-            <table id="game_listings" className="ui inverted selectable single line table">
+            <table id="game_listings" className="ui single line table">
                 <thead>
                     <tr>
                         <th>Game Name</th>
                         <th>Type</th>
                         <th>Players</th>
+                        <th>Buyin</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,11 +140,12 @@ class LobbyController extends React.Component {
             createGameType
         );    
     }
-    joinGame(game){
+    joinGame(game, buyinAmount){
         Lobby.Join(
             this.props.dispatch, 
             this.props.wsConnection,
-            game
+            game,
+            buyinAmount
         );    
     }
     render() {

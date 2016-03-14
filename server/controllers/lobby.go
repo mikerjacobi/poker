@@ -42,7 +42,7 @@ type CreateGameRequest struct {
 	Name string `json:"gameName"`
 	Type string `json:"gameType"`
 }
-type JoinLeaveGameRequest struct {
+type GameRequest struct {
 	ID string `json:"gameID"`
 }
 
@@ -109,28 +109,51 @@ func HandleCreateGame(msg models.Message) error {
 	return nil
 }
 
-func validateJoinLeaveGame(msg models.Message) (*JoinLeaveGameRequest, error) {
-	jlg := struct {
-		Game JoinLeaveGameRequest `json:"game"`
-	}{}
-	err := json.Unmarshal(msg.Raw, &jlg)
+type JoinGameRequest struct {
+	Game        GameRequest `json:"game"`
+	BuyinAmount int         `json:buyinAmount`
+}
+
+func validateJoinGame(msg models.Message) (*JoinGameRequest, error) {
+	jg := JoinGameRequest{}
+	err := json.Unmarshal(msg.Raw, &jg)
 	if err != nil {
 		return nil, err
 	}
 
-	if jlg.Game.ID == "" {
+	if jg.Game.ID == "" {
 		return nil, fmt.Errorf("game id cannot be empty: %+v", string(msg.Raw))
 	}
-	return &jlg.Game, nil
+	return &jg, nil
+}
+
+func validateLeaveGame(msg models.Message) (*GameRequest, error) {
+	lg := struct {
+		Game GameRequest `json:"game"`
+	}{}
+	err := json.Unmarshal(msg.Raw, &lg)
+	if err != nil {
+		return nil, err
+	}
+
+	if lg.Game.ID == "" {
+		return nil, fmt.Errorf("game id cannot be empty: %+v", string(msg.Raw))
+	}
+	return &lg.Game, nil
 }
 func HandleJoinGame(msg models.Message) error {
 	userFailMsg := "failed to join game"
-	jg, err := validateJoinLeaveGame(msg)
-	db := msg.Context.Get("db").(*mgo.Database)
-	game, err := models.JoinGame(db, jg.ID, msg.Sender)
+	jg, err := validateJoinGame(msg)
 	if err != nil {
 		models.SendError(msg.Sender.AccountID, userFailMsg)
-		return fmt.Errorf("%s: %+v ", userFailMsg, err)
+		return fmt.Errorf("fail validate join game.  %s: %+v ", userFailMsg, err)
+	}
+
+	db := msg.Context.Get("db").(*mgo.Database)
+	game, err := models.JoinGame(db, jg.Game.ID, msg.Sender.AccountID, jg.BuyinAmount)
+	if err != nil {
+		models.SendError(msg.Sender.AccountID, userFailMsg)
+		return fmt.Errorf("fail join game.  %s: %+v ", userFailMsg, err)
 	}
 
 	//notify all clients that someone joined this game
@@ -148,12 +171,17 @@ func HandleJoinGame(msg models.Message) error {
 
 func HandleLeaveGame(msg models.Message) error {
 	userFailMsg := "failed to leave game"
-	lg, err := validateJoinLeaveGame(msg)
+	lg, err := validateLeaveGame(msg)
+	if err != nil {
+		models.SendError(msg.Sender.AccountID, userFailMsg)
+		return fmt.Errorf("validate %s: %+v", userFailMsg, err.Error())
+	}
+
 	db := msg.Context.Get("db").(*mgo.Database)
 	game, err := models.LeaveGame(db, lg.ID, msg.Sender.AccountID)
 	if err != nil {
 		models.SendError(msg.Sender.AccountID, userFailMsg)
-		return fmt.Errorf("%s: %+v", userFailMsg, err.Error())
+		return fmt.Errorf("leavegame %s: %+v", userFailMsg, err.Error())
 	}
 
 	//notify all clients that someone left this game
@@ -165,5 +193,12 @@ func HandleLeaveGame(msg models.Message) error {
 	if err := models.Send(msg.Sender.AccountID, newLobbyMessage(gameLeave, game)); err != nil {
 		return fmt.Errorf("send error in handleLeaveGame: %+v", err)
 	}
+	return nil
+}
+
+func HandleGameBuyIn(msg models.Message) error {
+	return nil
+}
+func HandleGameCashOut(msg models.Message) error {
 	return nil
 }

@@ -40,6 +40,19 @@ func CreateAccount(db *mgo.Database, a Account) error {
 	return nil
 }
 
+func LoadAccountByID(db *mgo.Database, accountID string) (Account, error) {
+	accounts := db.C("accounts")
+	a := Account{}
+	query := bson.M{"accountID": accountID}
+	err := accounts.Find(query).One(&a)
+	if err == mgo.ErrNotFound {
+		return a, AccountNotFound
+	} else if err != nil {
+		return a, err
+	}
+	return a, nil
+}
+
 func LoadAccount(db *mgo.Database, username string) (Account, error) {
 	accounts := db.C("accounts")
 	a := Account{}

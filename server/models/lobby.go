@@ -1,11 +1,13 @@
 package models
 
 import (
+	"fmt"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func JoinGame(db *mgo.Database, gameID string, account Account) (Game, error) {
+func JoinGame(db *mgo.Database, gameID string, accountID string, buyinAmount int) (Game, error) {
 	games := db.C("games")
 	g := Game{}
 	query := bson.M{"gameID": gameID}
@@ -13,12 +15,28 @@ func JoinGame(db *mgo.Database, gameID string, account Account) (Game, error) {
 		return Game{}, err
 	}
 	for i := range g.Players {
-		if g.Players[i].AccountID == account.AccountID {
+		if g.Players[i].AccountID == accountID {
 			return g, nil
 		}
 	}
 
-	gp := GamePlayer{AccountID: account.AccountID, Name: account.Username}
+	//subtract buyin amount from account
+	if buyinAmount <= 0 {
+		return g, fmt.Errorf("buyin must be >0")
+	}
+	account, err := LoadAccountByID(db, accountID)
+	if err != nil {
+		return g, fmt.Errorf("failed to load account")
+	}
+	if account.Balance-buyinAmount < 0 {
+		return g, fmt.Errorf("not enough funds to buy in")
+	}
+	account.Balance -= buyinAmount
+	if err := account.Update(db); err != nil {
+		return g, fmt.Errorf("failed to update account balance")
+	}
+
+	gp := GamePlayer{AccountID: account.AccountID, Name: account.Username, Chips: buyinAmount}
 	g.Players = append(g.Players, gp)
 	if err := games.Update(query, g); err != nil {
 		return Game{}, err
