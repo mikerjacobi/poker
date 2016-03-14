@@ -12,10 +12,12 @@ exports.LOGIN = '/login';
 exports.LOGOUT = '/logout';
 exports.WSCONNECT = '/ws/connect';
 exports.WSDISCONNECT = '/ws/disconnect';
+exports.WSINFO = '/ws/info';
 exports.SERVERERROR = '/error';
 
 Actions.Register(exports.WSCONNECT);
 Actions.Register(exports.WSDISCONNECT);
+Actions.Register(exports.WSINFO);
 Actions.Register(exports.SERVERERROR, function(dispatch, msg){
     dispatch({type:Async.FETCHED});
     dispatch({type:Account.FETCHED});
@@ -129,6 +131,8 @@ exports.Login = function(dispatch, username, password, wsConn, history){
         return resp.json();
     }).then(function(json){
         action.sessionID = json.payload.sessionID;
+        action.accountID = json.payload.accountID;
+        action.username = json.payload.username;
         dispatch(action);
 
         //if we create a new ws, gonextpath

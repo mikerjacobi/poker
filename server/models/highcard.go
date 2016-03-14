@@ -74,15 +74,15 @@ func GetHighCardGame(db *mgo.Database, gameID string) (*HighCardGame, bool) {
 }
 
 type Hand struct {
-	Players []HighCardPlayer
-	*Deck
-	Pot int
+	Players  []HighCardPlayer `json:"players"`
+	*Deck    `json:"-"`
+	Pot      int `json:"pot"`
+	ActionTo `json:"actionTo"`
 }
 
 type HighCardPlayer struct {
-	GamePlayer `json:"game_player"`
+	GamePlayer `json:"gamePlayer"`
 	Card       `json:"card"`
-	IsButton   bool `json:"is_button"`
 }
 
 type HighCardGame struct {
@@ -90,6 +90,11 @@ type HighCardGame struct {
 	Hands []*Hand
 	*Hand
 	Ante int
+}
+
+type ActionTo struct {
+	CallAmount int    `json:"callAmount"`
+	AccountID  string `json:"accountID"`
 }
 
 func ToHighCardGame(game Game) *HighCardGame {
@@ -101,15 +106,15 @@ func ToHighCardGame(game Game) *HighCardGame {
 	return &hcg
 }
 
-func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
+func (hcg *HighCardGame) NewHand(db *mgo.Database) error {
 	//update hcg with the current list of players
 	game, err := LoadGame(db, hcg.Game.ID, "")
 	if err != nil {
-		return nil, fmt.Errorf("failed to load game in newhand: %+v", err)
+		return fmt.Errorf("failed to load game in newhand: %+v", err)
 	}
 	hcg.Game = game
 	if !hcg.HighCardPlayable(db) {
-		return nil, fmt.Errorf("highcard game not in playable state")
+		return fmt.Errorf("highcard game not in playable state")
 	}
 
 	h := Hand{
@@ -131,39 +136,23 @@ func (hcg *HighCardGame) NewHand(db *mgo.Database) (*Hand, error) {
 	}
 
 	if len(h.Players) < 2 {
-		return nil, fmt.Errorf("not enough players with ante")
+		return fmt.Errorf("not enough players with ante")
 	}
 	if err := hcg.Game.Update(db); err != nil {
-		return nil, fmt.Errorf("failed to update game in new hand")
+		return fmt.Errorf("failed to update game in new hand")
 	}
+
+	h.ActionTo = ActionTo{AccountID: h.Players[0].AccountID}
 
 	hcg.Hand = &h
 	hcg.Hands = append(hcg.Hands, &h)
-	return &h, nil
+	return nil
 }
 
 func (hcg *HighCardGame) StartHand(db *mgo.Database) error {
 	//deal
-	hand, err := hcg.NewHand(db)
-	if err != nil {
+	if err := hcg.NewHand(db); err != nil {
 		return fmt.Errorf("failed to create new highcard hand: %+v", err)
-	}
-
-	for _, _ = range hand.Players {
-		hcMsg := HighCardMessage{
-			Type: highCardUpdate,
-			Game: hcg.Game,
-			State: struct {
-				Players []HighCardPlayer `json:"players"`
-			}{hand.Players},
-		}
-
-		//TODO obscure all other players's cards
-
-		if err := SendGame(db, hcg.Game.ID, hcMsg); err != nil {
-			return fmt.Errorf("failed to sendgroup in highcard.start: %+v", err)
-		}
-
 	}
 
 	//wait for action
@@ -187,4 +176,35 @@ func (hcg *HighCardGame) HighCardPlayable(db *mgo.Database) bool {
 	//	}
 	//}
 	return true
+}
+
+func (hcg *HighCardGame) Send() error {
+	for _, player := range hcg.Game.Players {
+		//obscure all other players's cards
+		obscuredPlayers := make([]HighCardPlayer, len(hcg.Hand.Players))
+		copy(obscuredPlayers, hcg.Hand.Players)
+		for i := range hcg.Hand.Players {
+			//check and skip current player
+			if hcg.Hand.Players[i].GamePlayer.AccountID == player.AccountID {
+				continue
+			}
+			obscuredPlayers[i].Card = nullCard
+		}
+
+		state := Hand{
+			Players:  obscuredPlayers,
+			Pot:      hcg.Pot,
+			ActionTo: hcg.ActionTo,
+		}
+		msg := HighCardMessage{
+			Type:  highCardUpdate,
+			Game:  hcg.Game,
+			State: state,
+		}
+		if err := Send(player.AccountID, msg); err != nil {
+			return fmt.Errorf("failed to send in highcard.start: %+v", err)
+		}
+
+	}
+	return nil
 }

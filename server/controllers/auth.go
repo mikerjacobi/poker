@@ -79,7 +79,9 @@ func Login(c *echo.Context) error {
 
 	resp := struct {
 		SessionID string `json:"sessionID"`
-	}{sessionID}
+		AccountID string `json:"accountID"`
+		Username  string `json:"username"`
+	}{sessionID, account.AccountID, account.Username}
 
 	c.JSON(200, Response{
 		Success: true,

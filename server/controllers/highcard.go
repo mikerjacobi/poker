@@ -23,5 +23,10 @@ func HandlePlay(msg models.Message) error {
 	if err := hcg.StartHand(db); err != nil {
 		return fmt.Errorf("failed to start high card game: %+v", err)
 	}
+
+	if err := hcg.Send(); err != nil {
+		return fmt.Errorf("failed to send highcard game: %+v", err)
+	}
+
 	return nil
 }

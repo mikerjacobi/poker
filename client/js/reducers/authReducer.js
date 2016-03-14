@@ -7,6 +7,7 @@ var getInitialAuthState = function(){
     return {
         isFetching:false,
         username:"",
+        accountID:"",
         password:"",
         repeat:"",
         loggedIn:loggedIn,
@@ -24,15 +25,25 @@ exports.Auth = function(state, action){
     case Auth.LOGIN:
         reactCookie.save('session', action.sessionID);
         newState.loggedIn = true;
+        newState.username = action.username;
+        newState.accountID = action.accountID;
         break;
     case Auth.LOGOUT:
         reactCookie.remove('session');
         return getInitialAuthState();
     case Auth.WSCONNECT:
-        newState = {wsConnection:action.wsConnection};
+        newState = {
+            wsConnection:action.wsConnection,
+        };
         break;
     case Auth.WSDISCONNECT:
         newState = {wsConnection:false};
+        break;
+    case Auth.WSINFO:
+        newState = {
+            username: action.username,
+            accountID: action.accountID
+        };
         break;
     default:
         return state;

@@ -5,6 +5,10 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
+const (
+	wsInfo = "/ws/info"
+)
+
 var connectionManager *ConnectionManager
 
 type Connection struct {
@@ -27,8 +31,14 @@ func InitializeConnectionManager(db *mgo.Database) {
 	connectionManager = &cm
 }
 
-func Connect(connection *Connection) {
+func Connect(connection *Connection, account Account) {
 	connectionManager.Connections[connection.AccountID] = connection
+	msg := struct {
+		Type      string `json:"type"`
+		AccountID string `json:"accountID"`
+		Username  string `json:"username"`
+	}{wsInfo, account.AccountID, account.Username}
+	Send(account.AccountID, msg)
 }
 
 func Disconnect(accountID string) {

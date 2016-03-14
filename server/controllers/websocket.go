@@ -85,7 +85,14 @@ func DefaultActionHandler(msg models.Message) error {
 }
 
 func HandleWebSocketConnect(msg models.Message) error {
-	models.Connect(msg.Connection)
+	account, ok := msg.Context.Get("user").(models.Account)
+	if !ok {
+		return fmt.Errorf("failed to pull user out of conext in handle ws connect")
+	}
+	if account.AccountID != msg.Connection.AccountID {
+		return fmt.Errorf("accountid mismatch in handle ws connect")
+	}
+	models.Connect(msg.Connection, account)
 	return nil
 }
 

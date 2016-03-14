@@ -13,6 +13,10 @@ var getInitialState = function(){
         },
         gameState: {
             players: {},
+            actionTo:{
+                accountID:"",
+                callAmount:0
+            },
             error: ""
         }
     };
