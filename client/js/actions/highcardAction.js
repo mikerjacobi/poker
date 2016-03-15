@@ -7,6 +7,8 @@ var Actions = require("./actions").Actions;
 exports.INIT = '/highcard/init'
 exports.UPDATE = '/highcard/update'
 exports.PLAY = '/highcard/play'
+exports.CHECK = '/highcard/check'
+exports.BET = '/highcard/bet'
 
 //register highcard funcs
 Actions.Register(exports.UPDATE)
@@ -41,6 +43,23 @@ exports.Play = function(ws, gameID){
     var action = {
         type:exports.PLAY,
         gameID:gameID
+    };
+    ws.jsend(action);
+};
+
+exports.Check = function(ws, gameID){
+    var action = {
+        type:exports.CHECK,
+        gameID:gameID
+    };
+    ws.jsend(action);
+};
+
+exports.Bet = function(ws, gameID, amount){
+    var action = {
+        type:exports.BET,
+        gameID:gameID,
+        amount:amount
     };
     ws.jsend(action);
 };

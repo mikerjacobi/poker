@@ -74,7 +74,7 @@ func (mh *MessageHandler) HandleWebSocket(c *echo.Context) error {
 
 		logrus.Infof("%s: %+s", msg.Sender.Username, msg.Type)
 		if err := handleAction(msg); err != nil {
-			logrus.Errorf("failed to handle %s's action: %s.  %+v", msg.Sender.Username, msg.Type, err)
+			logrus.Errorf("failed to handle %s's action: %s.  %+v.  request: %s", msg.Sender.Username, msg.Type, err, string(msg.Raw))
 		}
 	}
 	return nil
