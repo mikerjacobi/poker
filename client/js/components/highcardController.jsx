@@ -33,10 +33,14 @@ class HighCardActions extends React.Component{
     constructor(props){
         super(props);
         this.changeBetAmount = this.changeBetAmount.bind(this);
-        this.state = {betAmount:0};
+        this.changeRaiseAmount = this.changeRaiseAmount.bind(this);
+        this.state = {betAmount:0, raiseAmount:0};
     }
     changeBetAmount(event){
         this.setState({betAmount:event.target.value});
+    }
+    changeRaiseAmount(event){
+        this.setState({raiseAmount:event.target.value});
     }
     render(){
         var actions = "";
@@ -64,7 +68,35 @@ class HighCardActions extends React.Component{
                     onChange={this.changeBetAmount}/>
             </div>
         } else {
-            actions = <div> implement this </div>
+            actions = <div> 
+                <button 
+                    className="ui tiny button"
+                    id="call_button"
+                    onClick={this.props.call}>
+                    Call 
+                </button> <br/>
+                <button 
+                    className="ui tiny button"
+                    id="fold_button"
+                    onClick={this.props.fold}>
+                    Fold 
+                </button> <br/>
+                <button 
+                    className="ui tiny button"
+                    id="raise_button"
+                    onClick={this.props.raise.bind(this, parseInt(this.state.raiseAmount))}>
+                    Raise
+                </button>
+                <input 
+                    type="text"
+                    size="5"
+                    maxLength="5"
+                    id="raise_amount"
+                    placeholder="raise"
+                    value={this.state.raiseAmount}
+                    onChange={this.changeRaiseAmount}/>
+                     
+            </div>
         }
         return(<div>{actions}</div>);
     };
@@ -91,8 +123,12 @@ class HighCardTable extends React.Component {
                 playerCard = this.props.players[i].card.display;
             }
             players.push(<div> 
-                {name} {this.props.players[i].gamePlayer.chips} chips 
+                {name} {this.props.players[i].gamePlayer.chips} chips <div className="ui red label"> {this.props.players[i].state} </div>
             </div>  );
+        }
+
+        if (this.props.complete){
+            return(<div id="game_div"> {players} </div>)
         }
         
         var actions = "";
@@ -100,13 +136,16 @@ class HighCardTable extends React.Component {
             actions = <HighCardActions 
                 callAmount={this.props.actionTo.callAmount}
                 check={this.props.check}
+                call={this.props.call}
+                fold={this.props.fold}
                 bet={this.props.bet}
+                raise={this.props.raise}
             />;
         }
 
         return(<div id="game_div"> 
-            current pot: <div className="ui green label"> {this.props.pot} </div> <br/><br/>
             {players} <br/>
+            current pot: <div className="ui green label"> {this.props.pot} </div> <br/><br/>
             <div className="ui teal label"> {playerCard} </div> <br/><br/>
             {actions}
         </div>);
@@ -120,6 +159,9 @@ class HighCardController extends React.Component {
         this.play = this.play.bind(this);
         this.check = this.check.bind(this);
         this.bet = this.bet.bind(this);
+        this.raise = this.raise.bind(this);
+        this.call = this.call.bind(this);
+        this.fold = this.fold.bind(this);
     }
     componentDidMount() {
         Auth.wsConnect(this.props.dispatch, this.props.wsConnection);
@@ -147,8 +189,17 @@ class HighCardController extends React.Component {
     check(){
         HighCard.Check(this.props.wsConnection, this.props.gameInfo.gameID);
     }
+    fold(){
+        HighCard.Fold(this.props.wsConnection, this.props.gameInfo.gameID);
+    }
+    call(amount){
+        HighCard.Call(this.props.wsConnection, this.props.gameInfo.gameID);
+    }
     bet(amount){
         HighCard.Bet(this.props.wsConnection, this.props.gameInfo.gameID, amount);
+    }
+    raise(amount){
+        HighCard.Raise(this.props.wsConnection, this.props.gameInfo.gameID, amount);
     }
     render() {
         if (!this.props.initialized){
@@ -169,7 +220,10 @@ class HighCardController extends React.Component {
                     username={this.props.username}
                     accountID={this.props.accountID}
                     check={this.check}
+                    call={this.call}
+                    fold={this.fold}
                     bet={this.bet}
+                    raise={this.raise}
                 />
             </div>
         );

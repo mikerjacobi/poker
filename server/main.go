@@ -102,8 +102,11 @@ func main() {
 	//mh.Handle("/game/cashout", controllers.HandleGameCashOut)
 
 	mh.Handle("/highcard/play", controllers.HandlePlay)
+	mh.Handle("/highcard/fold", controllers.HandleFold)
 	mh.Handle("/highcard/check", controllers.HandleCheck)
+	mh.Handle("/highcard/call", controllers.HandleCall)
 	mh.Handle("/highcard/bet", controllers.HandleBet)
+	mh.Handle("/highcard/raise", controllers.HandleRaise)
 
 	mh.Handle("/account/load", controllers.HandleLoadAccount)
 	mh.Handle("/account/chips/request", controllers.HandleChipRequest)

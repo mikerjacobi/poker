@@ -21,7 +21,7 @@ type MessageHandler struct {
 func InitializeMessageHandler(db *mgo.Database) (*MessageHandler, error) {
 
 	models.InitializeConnectionManager(db)
-	models.InitializeHighCardManager(db)
+	models.InitializeHighCardManager()
 	mh := MessageHandler{Handlers: map[string]func(models.Message) error{}}
 	return &mh, nil
 }

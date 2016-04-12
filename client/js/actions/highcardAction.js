@@ -8,7 +8,10 @@ exports.INIT = '/highcard/init'
 exports.UPDATE = '/highcard/update'
 exports.PLAY = '/highcard/play'
 exports.CHECK = '/highcard/check'
+exports.FOLD = '/highcard/fold'
+exports.CALL = '/highcard/call'
 exports.BET = '/highcard/bet'
+exports.RAISE = '/highcard/raise'
 
 //register highcard funcs
 Actions.Register(exports.UPDATE)
@@ -55,9 +58,34 @@ exports.Check = function(ws, gameID){
     ws.jsend(action);
 };
 
+exports.Fold = function(ws, gameID){
+    var action = {
+        type:exports.FOLD,
+        gameID:gameID
+    };
+    ws.jsend(action);
+};
+
+exports.Call = function(ws, gameID, amount){
+    var action = {
+        type:exports.CALL,
+        gameID:gameID
+    };
+    ws.jsend(action);
+};
+
 exports.Bet = function(ws, gameID, amount){
     var action = {
         type:exports.BET,
+        gameID:gameID,
+        amount:amount
+    };
+    ws.jsend(action);
+};
+
+exports.Raise = function(ws, gameID, amount){
+    var action = {
+        type:exports.RAISE,
         gameID:gameID,
         amount:amount
     };

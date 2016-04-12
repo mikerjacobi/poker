@@ -17,6 +17,7 @@ var getInitialState = function(){
                 accountID:"",
                 callAmount:0
             },
+            complete: false,
             error: ""
         }
     };

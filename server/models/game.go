@@ -48,14 +48,6 @@ func CreateGame(db *mgo.Database, name, gameType string) (Game, error) {
 		return Game{}, fmt.Errorf("failed to insert: %s", err)
 	}
 
-	if g.GameType == "holdem" {
-		//return CheckStartHoldem(game)
-	} else if g.GameType == "highcard" {
-		CreateHighCardGame(ToHighCardGame(g))
-	} else {
-		return Game{}, fmt.Errorf("game type: %s, is an invalid gametype", g.GameType)
-	}
-
 	return g, nil
 }
 
