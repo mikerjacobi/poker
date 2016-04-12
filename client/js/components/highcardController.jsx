@@ -73,7 +73,7 @@ class HighCardActions extends React.Component{
                     className="ui tiny button"
                     id="call_button"
                     onClick={this.props.call}>
-                    Call 
+                    Call {this.props.callAmount}
                 </button> <br/>
                 <button 
                     className="ui tiny button"
@@ -119,11 +119,35 @@ class HighCardTable extends React.Component {
             if (this.props.players[i].gamePlayer.accountID == this.props.actionTo.accountID){
                 name = <div className="ui orange label"> {this.props.players[i].gamePlayer.name} </div>;
             }
+
             if (this.props.accountID == this.props.players[i].gamePlayer.accountID){
                 playerCard = this.props.players[i].card.display;
+
             }
+
+            //if player state is winner, display how much this player won
+            var winner = "";
+            if (this.props.players[i].state == "winner"){
+                winner = "Won " + this.props.payout + " chips";
+            }
+     
+            //if hand is complete, display cards 
+            var card = "";
+            if (this.props.complete){
+                card = <div className="ui green label"> {this.props.players[i].card.display} </div>;
+            }
+
+            //if this user has a state to be reported
+            var state = "";
+            if (this.props.players[i].state != ""){
+                state = <div className="ui red label"> {this.props.players[i].state} </div>
+            }
+
             players.push(<div> 
-                {name} {this.props.players[i].gamePlayer.chips} chips <div className="ui red label"> {this.props.players[i].state} </div>
+                {name} {this.props.players[i].gamePlayer.chips} chips 
+                {state}
+                {card}
+                {winner}
             </div>  );
         }
 

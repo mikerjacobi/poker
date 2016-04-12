@@ -58,6 +58,7 @@ type HighCardHand struct {
 	Pot             int `json:"pot"`
 	ActionTo        `json:"actionTo"`
 	Complete        bool `json:"complete"`
+	Payout          int  `json:"payout"` //only set if complete==true
 	NumTurns        int  `json:"-"`
 	NumStartPlayers int  `json:"-"`
 }
@@ -183,12 +184,13 @@ func (hcg *HighCardGame) StartHand() error {
 
 func (hcg *HighCardGame) Send() error {
 	for _, player := range hcg.Game.Players {
-		//obscure all other players's cards
+
+		//obscure all other players's cards if hand not complete
 		obscuredPlayers := make([]*HighCardPlayer, len(hcg.Hand.PlayerList))
 		for i := range hcg.Hand.PlayerList {
 			//check and skip current player
 			obscuredPlayers[i] = hcg.Hand.PlayerList[i].Copy()
-			if hcg.Hand.PlayerList[i].GamePlayer.AccountID != player.AccountID {
+			if !hcg.Hand.Complete && hcg.Hand.PlayerList[i].GamePlayer.AccountID != player.AccountID {
 				obscuredPlayers[i].Card = nullCard
 			}
 		}
@@ -198,6 +200,7 @@ func (hcg *HighCardGame) Send() error {
 			Pot:        hcg.Hand.Pot,
 			ActionTo:   hcg.Hand.ActionTo,
 			Complete:   hcg.Hand.Complete,
+			Payout:     hcg.Hand.Payout,
 		}
 		msg := HighCardMessage{
 			Type:  highCardUpdate,
@@ -217,6 +220,15 @@ func (hcg *HighCardGame) Fold() error {
 		return nil
 	}
 	return hcg.Transition("fold")
+}
+
+func highCardFoldOutOfTurn(gameID, accountID string) error {
+	hcg, ok := highCardManager.Games[gameID]
+	if !ok {
+		return fmt.Errorf("highcard game %s does not exist in fold out of turn", gameID)
+	}
+	hcg.Hand.Players[accountID].State = "fold"
+	return nil
 }
 
 func (hcg *HighCardGame) Check() error {
@@ -248,15 +260,16 @@ func (hcg *HighCardGame) Bet(amount int) error {
 	return hcg.Transition(fmt.Sprintf("bet %d", amount))
 }
 
-func (hcg *HighCardGame) Raise(amount int) error {
+func (hcg *HighCardGame) Raise(raiseAmount int) error {
 	if hcg.Hand.Complete {
 		return nil
 	}
 	currPlayer := hcg.Hand.ActionTo.AccountID
-	hcg.Hand.Players[currPlayer].Chips -= (hcg.Hand.ActionTo.CallAmount + amount)
-	hcg.Hand.Pot += (hcg.Hand.ActionTo.CallAmount + amount)
-	hcg.Hand.ActionTo.CallAmount = amount
-	return hcg.Transition(fmt.Sprintf("call %d, re-raise %d", hcg.Hand.ActionTo.CallAmount, amount))
+	callAmount := hcg.Hand.ActionTo.CallAmount
+	hcg.Hand.Players[currPlayer].Chips -= (callAmount + raiseAmount)
+	hcg.Hand.Pot += (callAmount + raiseAmount)
+	hcg.Hand.ActionTo.CallAmount = raiseAmount
+	return hcg.Transition(fmt.Sprintf("call %d, reraise %d", callAmount, raiseAmount))
 }
 
 func (hcg *HighCardGame) Transition(state string) error {
@@ -305,9 +318,9 @@ func (hcg *HighCardGame) checkComplete() error {
 	}
 
 	//calculate this hands chip updates
-	payout := hcg.Hand.Pot / len(winners)
+	hcg.Hand.Payout = hcg.Hand.Pot / len(winners)
 	for _, w := range winners {
-		hcg.Hand.Players[w].Chips += payout
+		hcg.Hand.Players[w].Chips += hcg.Hand.Payout
 		hcg.Hand.Players[w].State = "winner"
 	}
 
@@ -321,7 +334,7 @@ func (hcg *HighCardGame) checkComplete() error {
 		}
 	}
 
-	logrus.Infof("highcard game complete.  winners: %+v, payment: %d", winners, payout)
+	logrus.Infof("highcard game complete.  winners: %+v, payment: %d", winners, hcg.Hand.Payout)
 	hcg.Hand.Pot = 0
 	return nil
 }

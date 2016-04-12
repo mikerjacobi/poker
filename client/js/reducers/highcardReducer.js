@@ -18,6 +18,7 @@ var getInitialState = function(){
                 callAmount:0
             },
             complete: false,
+            payout: 0,
             error: ""
         }
     };
